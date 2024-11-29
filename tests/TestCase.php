@@ -4,9 +4,9 @@ declare(strict_types = 1);
 
 namespace Centrex\TallUi\Tests;
 
+use Centrex\TallUi\TallUiServiceProvider;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Orchestra\Testbench\TestCase as Orchestra;
-use Centrex\TallUi\TallUiServiceProvider;
 
 class TestCase extends Orchestra
 {
