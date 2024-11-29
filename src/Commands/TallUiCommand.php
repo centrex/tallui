@@ -2,13 +2,13 @@
 
 declare(strict_types = 1);
 
-namespace VendorName\Skeleton\Commands;
+namespace Centrex\TallUi\Commands;
 
 use Illuminate\Console\Command;
 
-class SkeletonCommand extends Command
+class TallUiCommand extends Command
 {
-    public $signature = 'skeleton';
+    public $signature = 'tallui';
 
     public $description = 'My command';
 

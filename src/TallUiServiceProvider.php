@@ -2,11 +2,11 @@
 
 declare(strict_types = 1);
 
-namespace VendorName\Skeleton;
+namespace Centrex\TallUi;
 
 use Illuminate\Support\ServiceProvider;
 
-class SkeletonServiceProvider extends ServiceProvider
+class TallUiServiceProvider extends ServiceProvider
 {
     /**
      * Bootstrap the application services.
@@ -16,35 +16,35 @@ class SkeletonServiceProvider extends ServiceProvider
         /*
          * Optional methods to load your package assets
          */
-        // $this->loadTranslationsFrom(__DIR__.'/../resources/lang', ':package_slug');
-        // $this->loadViewsFrom(__DIR__.'/../resources/views', ':package_slug');
+        // $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'tallui');
+        // $this->loadViewsFrom(__DIR__.'/../resources/views', 'tallui');
         // $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
         // $this->loadRoutesFrom(__DIR__.'/routes.php');
 
         if ($this->app->runningInConsole()) {
             $this->publishes([
-                __DIR__ . '/../config/config.php' => config_path(':package_slug.php'),
-            ], ':package_slug-config');
+                __DIR__ . '/../config/config.php' => config_path('tallui.php'),
+            ], 'tallui-config');
 
             // Publishing the migrations.
             /*$this->publishes([
                 __DIR__.'/../database/migrations/' => database_path('migrations')
-            ], ':package_slug-migrations');*/
+            ], 'tallui-migrations');*/
 
             // Publishing the views.
             /*$this->publishes([
-                __DIR__.'/../resources/views' => resource_path('views/vendor/:package_slug'),
-            ], ':package_slug-views');*/
+                __DIR__.'/../resources/views' => resource_path('views/vendor/tallui'),
+            ], 'tallui-views');*/
 
             // Publishing assets.
             /*$this->publishes([
-                __DIR__.'/../resources/assets' => public_path('vendor/:package_slug'),
-            ], ':package_slug-assets');*/
+                __DIR__.'/../resources/assets' => public_path('vendor/tallui'),
+            ], 'tallui-assets');*/
 
             // Publishing the translation files.
             /*$this->publishes([
-                __DIR__.'/../resources/lang' => resource_path('lang/vendor/:package_slug'),
-            ], ':package_slug-lang');*/
+                __DIR__.'/../resources/lang' => resource_path('lang/vendor/tallui'),
+            ], 'tallui-lang');*/
 
             // Registering package commands.
             // $this->commands([]);
@@ -57,11 +57,11 @@ class SkeletonServiceProvider extends ServiceProvider
     public function register()
     {
         // Automatically apply the package configuration
-        $this->mergeConfigFrom(__DIR__ . '/../config/config.php', ':package_slug');
+        $this->mergeConfigFrom(__DIR__ . '/../config/config.php', 'tallui');
 
         // Register the main class to use with the facade
-        $this->app->singleton(':package_slug', function () {
-            return new Skeleton();
+        $this->app->singleton('tallui', function () {
+            return new TallUi();
         });
     }
 }
