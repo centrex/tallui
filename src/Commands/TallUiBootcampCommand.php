@@ -6,9 +6,9 @@ namespace Centrex\TallUi\Commands;
 
 use Illuminate\Console\Command;
 
-class TallUiCommand extends Command
+class TallUiBootcampCommand extends Command
 {
-    public $signature = 'tallui';
+    public $signature = 'tallui-bootcamp';
 
     public $description = 'My command';
 
