@@ -79,7 +79,7 @@ class TallUiServiceProvider extends ServiceProvider
             return "<?php \$__bladeCompiler = \$__bladeCompiler ?? null; \$loop = null; \$__env->slot({$name}, function({$functionArguments}) use ({$uses}) { \$loop = (object) \$__env->getLoopStack()[0] ?>";
         });
 
-        Blade::directive('endscope', fn(): string => '<?php }); ?>');
+        Blade::directive('endscope', fn (): string => '<?php }); ?>');
     }
 
     /**

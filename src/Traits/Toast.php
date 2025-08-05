@@ -36,6 +36,7 @@ trait Toast
         if ($redirectTo) {
             return $this->redirect($redirectTo, navigate: true);
         }
+
         return null;
     }
 
