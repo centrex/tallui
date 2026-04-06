@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace Centrex\TallUi\View\Components;
 
 use Illuminate\View\Component;
+
 class Badge extends Component
 {
     public function __construct(
