@@ -49,20 +49,16 @@ class TallUiServiceProvider extends ServiceProvider
         /** @var string $prefix */
         $prefix = config('tallui.prefix', 'tallui');
 
-        $this->loadViewComponentsAs($prefix, [
-            // Existing
-            View\Components\Button::class,
-
-            // Form components
-            View\Components\Form\FormGroup::class,
-            View\Components\Form\Input::class,
-            View\Components\Form\Textarea::class,
-            View\Components\Form\Select::class,
-            View\Components\Form\Checkbox::class,
-            View\Components\Form\Radio::class,
-            View\Components\Form\Toggle::class,
-            View\Components\Form\DatePicker::class,
-        ]);
+        Blade::component("{$prefix}-button", View\Components\Button::class);
+        Blade::component("{$prefix}-input", View\Components\Form\Input::class);
+        Blade::component("{$prefix}-form-group", View\Components\Form\FormGroup::class);
+        Blade::component("{$prefix}-textarea", View\Components\Form\Textarea::class);
+        Blade::component("{$prefix}-select", View\Components\Form\Select::class);
+        Blade::component("{$prefix}-checkbox", View\Components\Form\Checkbox::class);
+        Blade::component("{$prefix}-radio", View\Components\Form\Radio::class);
+        Blade::component("{$prefix}-toggle", View\Components\Form\Toggle::class);
+        Blade::component("{$prefix}-date-picker", View\Components\Form\DatePicker::class);
+        Blade::component("{$prefix}-badge", View\Components\Badge::class);
     }
 
     public function registerLivewireComponents(): void
