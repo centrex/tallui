@@ -56,7 +56,7 @@ trait Toast
         string $title,
         ?string $description = null,
         ?string $position = null,
-        string $icon = 'o-exclamation-triangle',
+        string $icon = 'heroicon-o-exclamation-triangle',
         string $css = 'alert-warning',
         int $timeout = 3000,
         ?string $redirectTo = null,
