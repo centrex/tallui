@@ -11,12 +11,12 @@ use Illuminate\View\Component;
 class Modal extends Component
 {
     public function __construct(
-        public string  $id         = 'modal',
-        public string  $title      = '',
-        public string  $size       = 'md',   // sm | md | lg | xl | full
-        public bool    $closeable  = true,   // show X button + close on backdrop click
-        public ?string $icon       = null,   // Heroicon in the title bar
-        public string  $iconColor  = 'text-primary',
+        public string $id = 'modal',
+        public string $title = '',
+        public string $size = 'md',   // sm | md | lg | xl | full
+        public bool $closeable = true,   // show X button + close on backdrop click
+        public ?string $icon = null,   // Heroicon in the title bar
+        public string $iconColor = 'text-primary',
     ) {}
 
     public function render(): View|Closure|string
