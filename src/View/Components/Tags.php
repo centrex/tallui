@@ -11,13 +11,13 @@ use Illuminate\View\Component;
 class Tags extends Component
 {
     public function __construct(
-        public string  $name        = 'tags',
-        public ?string $label       = null,
-        public array   $value       = [],
+        public string $name = 'tags',
+        public ?string $label = null,
+        public array $value = [],
         public ?string $placeholder = 'Add tag…',
-        public ?string $helper      = null,
-        public ?string $error       = null,
-        public string  $color       = 'primary',
+        public ?string $helper = null,
+        public ?string $error = null,
+        public string $color = 'primary',
     ) {}
 
     public function render(): View|Closure|string

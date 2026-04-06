@@ -11,11 +11,11 @@ use Illuminate\View\Component;
 class Accordion extends Component
 {
     public function __construct(
-        public string $name    = 'accordion',
-        public string $title   = '',
-        public bool   $open    = false,
+        public string $name = 'accordion',
+        public string $title = '',
+        public bool $open = false,
         public string $variant = 'arrow',  // arrow | plus
-        public string $color   = '',       // bg-base-200 | bg-primary | etc.
+        public string $color = '',       // bg-base-200 | bg-primary | etc.
     ) {}
 
     public function render(): View|Closure|string

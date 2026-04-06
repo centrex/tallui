@@ -13,12 +13,12 @@ class Progress extends Component
     public int $percent;
 
     public function __construct(
-        public int|float $value     = 0,
-        public int|float $max       = 100,
-        public string    $color     = 'primary',
-        public string    $size      = 'md',   // xs | sm | md | lg
-        public bool      $showLabel = false,
-        public ?string   $label     = null,
+        public int|float $value = 0,
+        public int|float $max = 100,
+        public string $color = 'primary',
+        public string $size = 'md',   // xs | sm | md | lg
+        public bool $showLabel = false,
+        public ?string $label = null,
     ) {
         $this->percent = $max > 0 ? (int) round(($value / $max) * 100) : 0;
     }

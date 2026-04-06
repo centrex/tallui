@@ -13,14 +13,14 @@ class TextEditor extends Component
     public string $editorId;
 
     public function __construct(
-        public string  $name        = '',
-        public ?string $label       = null,
+        public string $name = '',
+        public ?string $label = null,
         public ?string $placeholder = null,
-        public ?string $value       = null,
-        public ?string $error       = null,
-        public ?string $helper      = null,
-        public int     $rows        = 8,
-        public bool    $required    = false,
+        public ?string $value = null,
+        public ?string $error = null,
+        public ?string $helper = null,
+        public int $rows = 8,
+        public bool $required = false,
     ) {
         $this->editorId = 'editor-' . ($name ?: uniqid());
     }

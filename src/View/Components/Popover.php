@@ -12,7 +12,7 @@ class Popover extends Component
 {
     public function __construct(
         public string $position = 'top',   // top | bottom | left | right
-        public string $trigger  = 'hover', // hover | click
+        public string $trigger = 'hover', // hover | click
     ) {}
 
     public function render(): View|Closure|string

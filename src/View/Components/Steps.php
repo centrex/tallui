@@ -11,9 +11,9 @@ use Illuminate\View\Component;
 class Steps extends Component
 {
     public function __construct(
-        public array  $steps    = [], // [['label' => '', 'color' => 'primary'?], ...]
-        public int    $current  = 1,  // 1-based index of the active step
-        public bool   $vertical = false,
+        public array $steps = [], // [['label' => '', 'color' => 'primary'?], ...]
+        public int $current = 1,  // 1-based index of the active step
+        public bool $vertical = false,
     ) {}
 
     public function render(): View|Closure|string

@@ -11,9 +11,9 @@ use Illuminate\View\Component;
 class ThemeToggle extends Component
 {
     public function __construct(
-        public string $light     = 'light',
-        public string $dark      = 'dark',
-        public bool   $withLabel = false,
+        public string $light = 'light',
+        public string $dark = 'dark',
+        public bool $withLabel = false,
     ) {}
 
     public function render(): View|Closure|string

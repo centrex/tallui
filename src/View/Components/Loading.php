@@ -11,10 +11,10 @@ use Illuminate\View\Component;
 class Loading extends Component
 {
     public function __construct(
-        public string  $variant = 'spinner', // spinner | dots | ring | ball | bars | infinity
-        public string  $size    = 'md',      // xs | sm | md | lg
-        public ?string $color   = null,      // text-primary | text-secondary | etc.
-        public ?string $label   = null,
+        public string $variant = 'spinner', // spinner | dots | ring | ball | bars | infinity
+        public string $size = 'md',      // xs | sm | md | lg
+        public ?string $color = null,      // text-primary | text-secondary | etc.
+        public ?string $label = null,
     ) {}
 
     public function render(): View|Closure|string

@@ -11,10 +11,10 @@ use Illuminate\View\Component;
 class Tab extends Component
 {
     public function __construct(
-        public array  $tabs    = [], // [['id' => '', 'label' => '', 'icon'? => ''], ...]
-        public string $active  = '',
+        public array $tabs = [], // [['id' => '', 'label' => '', 'icon'? => ''], ...]
+        public string $active = '',
         public string $variant = 'bordered', // bordered | lifted | boxed
-        public string $size    = '',         // xs | sm | lg
+        public string $size = '',         // xs | sm | lg
     ) {
         if ($this->active === '' && count($tabs) > 0) {
             $this->active = $tabs[0]['id'];

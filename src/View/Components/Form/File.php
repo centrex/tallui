@@ -13,15 +13,15 @@ class File extends Component
     public string $sizeClass;
 
     public function __construct(
-        public string  $name     = '',
-        public ?string $label    = null,
-        public ?string $helper   = null,
-        public ?string $error    = null,
-        public bool    $multiple = false,
-        public ?string $accept   = null,
-        public string  $size     = '',
-        public bool    $bordered = true,
-        public bool    $required = false,
+        public string $name = '',
+        public ?string $label = null,
+        public ?string $helper = null,
+        public ?string $error = null,
+        public bool $multiple = false,
+        public ?string $accept = null,
+        public string $size = '',
+        public bool $bordered = true,
+        public bool $required = false,
     ) {
         $this->sizeClass = match ($size ?: config('tallui.forms.size', 'md')) {
             'xs'    => 'file-input-xs',

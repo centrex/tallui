@@ -11,9 +11,9 @@ use Illuminate\View\Component;
 class Spotlight extends Component
 {
     public function __construct(
-        public string  $placeholder = 'Search anything...',
-        public string  $shortcut    = '/',
-        public array   $items       = [], // [['label','description'?,'url'?,'icon'?,'group'?], ...]
+        public string $placeholder = 'Search anything...',
+        public string $shortcut = '/',
+        public array $items = [], // [['label','description'?,'url'?,'icon'?,'group'?], ...]
     ) {}
 
     public function render(): View|Closure|string

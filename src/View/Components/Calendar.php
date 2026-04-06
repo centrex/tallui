@@ -11,11 +11,11 @@ use Illuminate\View\Component;
 class Calendar extends Component
 {
     public function __construct(
-        public ?string $selected   = null, // YYYY-MM-DD
-        public ?string $month      = null, // YYYY-MM, defaults to current
-        public array   $events     = [], // [['date'=>'YYYY-MM-DD','label'=>'','color'=>'primary'?]]
-        public bool    $selectable = true,
-        public ?string $wire       = null, // wire:model property name
+        public ?string $selected = null, // YYYY-MM-DD
+        public ?string $month = null, // YYYY-MM, defaults to current
+        public array $events = [], // [['date'=>'YYYY-MM-DD','label'=>'','color'=>'primary'?]]
+        public bool $selectable = true,
+        public ?string $wire = null, // wire:model property name
     ) {
         $this->month ??= now()->format('Y-m');
     }

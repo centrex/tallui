@@ -11,11 +11,11 @@ use Illuminate\View\Component;
 class ImageGallery extends Component
 {
     public function __construct(
-        public array  $images  = [], // [['src','alt'?,'caption'?], ...]
-        public int    $columns = 3,
-        public bool   $lightbox = true,
-        public string $fit     = 'cover', // cover | contain
-        public string $height  = 'h-48',
+        public array $images = [], // [['src','alt'?,'caption'?], ...]
+        public int $columns = 3,
+        public bool $lightbox = true,
+        public string $fit = 'cover', // cover | contain
+        public string $height = 'h-48',
     ) {}
 
     public function render(): View|Closure|string

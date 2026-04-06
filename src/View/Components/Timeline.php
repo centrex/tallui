@@ -12,7 +12,7 @@ class Timeline extends Component
 {
     public function __construct(
         public array $items = [], // [['time','title','description','color'?,'icon'?], ...]
-        public bool  $compact = false,
+        public bool $compact = false,
     ) {}
 
     public function render(): View|Closure|string

@@ -11,17 +11,17 @@ use Illuminate\View\Component;
 class Range extends Component
 {
     public function __construct(
-        public string  $name      = '',
-        public ?string $label     = null,
-        public int     $min       = 0,
-        public int     $max       = 100,
-        public int     $step      = 1,
-        public ?int    $value     = null,
-        public string  $color     = 'primary',
-        public bool    $showSteps = false,
-        public bool    $showValue = false,
-        public ?string $helper    = null,
-        public ?string $error     = null,
+        public string $name = '',
+        public ?string $label = null,
+        public int $min = 0,
+        public int $max = 100,
+        public int $step = 1,
+        public ?int $value = null,
+        public string $color = 'primary',
+        public bool $showSteps = false,
+        public bool $showValue = false,
+        public ?string $helper = null,
+        public ?string $error = null,
     ) {}
 
     public function render(): View|Closure|string

@@ -11,12 +11,12 @@ use Illuminate\View\Component;
 class Rating extends Component
 {
     public function __construct(
-        public string    $name     = 'rating',
-        public int       $max      = 5,
-        public int|float $value    = 0,
-        public string    $size     = 'md',
-        public string    $color    = 'warning',
-        public bool      $readonly = false,
+        public string $name = 'rating',
+        public int $max = 5,
+        public int|float $value = 0,
+        public string $size = 'md',
+        public string $color = 'warning',
+        public bool $readonly = false,
     ) {}
 
     public function render(): View|Closure|string

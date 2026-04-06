@@ -13,10 +13,10 @@ class Alert extends Component
     public string $alertClass;
 
     public function __construct(
-        public string  $type        = 'info',   // info | success | warning | error
-        public ?string $title       = null,
-        public ?string $icon        = null,
-        public bool    $dismissible = false,
+        public string $type = 'info',   // info | success | warning | error
+        public ?string $title = null,
+        public ?string $icon = null,
+        public bool $dismissible = false,
     ) {
         $this->alertClass = match ($type) {
             'success' => 'alert-success',

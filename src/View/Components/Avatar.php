@@ -13,20 +13,20 @@ class Avatar extends Component
     public string $sizeClass;
 
     public function __construct(
-        public ?string $src      = null,
-        public string  $alt      = '',
+        public ?string $src = null,
+        public string $alt = '',
         public ?string $initials = null,
-        public string  $size     = 'md',    // xs | sm | md | lg
-        public string  $shape    = 'circle', // circle | square | rounded
-        public string  $color    = 'bg-neutral text-neutral-content',
-        public bool    $online   = false,
-        public bool    $offline  = false,
-        public ?string $badge    = null,
+        public string $size = 'md',    // xs | sm | md | lg
+        public string $shape = 'circle', // circle | square | rounded
+        public string $color = 'bg-neutral text-neutral-content',
+        public bool $online = false,
+        public bool $offline = false,
+        public ?string $badge = null,
     ) {
         $this->sizeClass = match ($size) {
-            'xs' => 'w-6',
-            'sm' => 'w-8',
-            'lg' => 'w-16',
+            'xs'    => 'w-6',
+            'sm'    => 'w-8',
+            'lg'    => 'w-16',
             default => 'w-12',
         };
     }

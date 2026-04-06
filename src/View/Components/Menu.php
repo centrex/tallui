@@ -11,10 +11,10 @@ use Illuminate\View\Component;
 class Menu extends Component
 {
     public function __construct(
-        public array  $items      = [], // [['label','url'?,'icon'?,'active'?,'children'?], ...]
-        public bool   $horizontal = false,
-        public string $size       = '',  // xs | sm | lg
-        public string $color      = '',  // bg-base-100 | bg-base-200 | etc.
+        public array $items = [], // [['label','url'?,'icon'?,'active'?,'children'?], ...]
+        public bool $horizontal = false,
+        public string $size = '',  // xs | sm | lg
+        public string $color = '',  // bg-base-100 | bg-base-200 | etc.
     ) {}
 
     public function render(): View|Closure|string

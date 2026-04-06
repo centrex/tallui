@@ -11,7 +11,7 @@ use Illuminate\View\Component;
 class Swap extends Component
 {
     public function __construct(
-        public bool   $active = false,
+        public bool $active = false,
         public string $effect = 'rotate', // rotate | flip
     ) {}
 

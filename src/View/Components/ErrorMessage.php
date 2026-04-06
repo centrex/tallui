@@ -12,7 +12,7 @@ class ErrorMessage extends Component
 {
     public function __construct(
         public ?string $message = null,
-        public string  $field   = '',
+        public string $field = '',
     ) {}
 
     public function render(): View|Closure|string

@@ -11,10 +11,10 @@ use Illuminate\View\Component;
 class Drawer extends Component
 {
     public function __construct(
-        public string $id    = 'drawer',
-        public string $side  = 'left',  // left | right
+        public string $id = 'drawer',
+        public string $side = 'left',  // left | right
         public string $width = 'w-80',
-        public bool   $open  = false,
+        public bool $open = false,
     ) {}
 
     public function render(): View|Closure|string

@@ -13,13 +13,13 @@ class Carousel extends Component
     public string $id;
 
     public function __construct(
-        public array  $items      = [], // [['src','alt'?,'caption'?], ...]
-        public bool   $arrows     = true,
-        public bool   $indicators = true,
-        public bool   $autoplay   = false,
-        public int    $interval   = 3000,
-        public string $fit        = 'cover', // cover | contain
-        public string $height     = 'h-64',
+        public array $items = [], // [['src','alt'?,'caption'?], ...]
+        public bool $arrows = true,
+        public bool $indicators = true,
+        public bool $autoplay = false,
+        public int $interval = 3000,
+        public string $fit = 'cover', // cover | contain
+        public string $height = 'h-64',
     ) {
         $this->id = 'carousel-' . uniqid();
     }
