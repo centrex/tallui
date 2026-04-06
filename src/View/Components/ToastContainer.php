@@ -12,7 +12,7 @@ class ToastContainer extends Component
 {
     public function __construct(
         public string $position = 'end bottom', // DaisyUI toast position classes
-        public int    $timeout  = 3000,
+        public int $timeout = 3000,
     ) {}
 
     public function render(): View|Closure|string
