@@ -9,9 +9,9 @@ use Centrex\TallUi\DataTable\Column;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 use Livewire\Attributes\Url;
 use Livewire\{Component, WithPagination};
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class DataTable extends Component
 {
@@ -155,7 +155,7 @@ class DataTable extends Component
 
     public function togglePageSelection(): void
     {
-        $rows   = $this->getRows();
+        $rows = $this->getRows();
         $pageIds = $rows->map(fn ($r): string => (string) data_get($r, $this->primaryKey))->all();
         $allSelected = empty(array_diff($pageIds, $this->selectedRows));
 
@@ -183,7 +183,7 @@ class DataTable extends Component
         return array_values(array_filter(
             $this->columnDefs,
             fn (array $col): bool => ($col['exportable'] ?? true)
-                && ! $col['isActions']
+                && !$col['isActions']
                 && $col['key'] !== null,
         ));
     }
@@ -215,7 +215,7 @@ class DataTable extends Component
 
         $this->applyFilters($query);
 
-        if (! empty($this->selectedRows)) {
+        if (!empty($this->selectedRows)) {
             $query->whereIn($this->primaryKey, $this->selectedRows);
         }
 
@@ -232,9 +232,9 @@ class DataTable extends Component
      */
     public function exportCsv(): StreamedResponse
     {
-        $columns  = $this->getExportableColumns();
-        $query    = $this->buildExportQuery();
-        $label    = ! empty($this->selectedRows)
+        $columns = $this->getExportableColumns();
+        $query = $this->buildExportQuery();
+        $label = !empty($this->selectedRows)
             ? count($this->selectedRows) . '-rows'
             : 'all';
         $filename = 'export-' . $label . '-' . now()->format('Y-m-d') . '.csv';
@@ -252,6 +252,7 @@ class DataTable extends Component
             $query->chunk(500, function ($rows) use ($handle, $columns): void {
                 foreach ($rows as $row) {
                     $csvRow = [];
+
                     foreach ($columns as $col) {
                         $value = data_get($row, $col['key'] ?? '');
                         $csvRow[] = is_array($value)
@@ -397,11 +398,11 @@ class DataTable extends Component
     public function render(): View
     {
         $filterDefs = method_exists($this, 'getFilterDefs') ? $this->getFilterDefs() : [];
-        $rows       = $this->getRows();
+        $rows = $this->getRows();
 
-        $pageIds         = $rows->map(fn ($r): string => (string) data_get($r, $this->primaryKey))->all();
-        $selectedOnPage  = count(array_intersect($pageIds, $this->selectedRows));
-        $totalOnPage     = count($pageIds);
+        $pageIds = $rows->map(fn ($r): string => (string) data_get($r, $this->primaryKey))->all();
+        $selectedOnPage = count(array_intersect($pageIds, $this->selectedRows));
+        $totalOnPage = count($pageIds);
 
         return view('tallui::livewire.data-table', [
             'rows'                  => $rows,
