@@ -18,6 +18,8 @@ class Column
 
     public bool $isHtml = false;   // render via view or renderer class
 
+    public bool $exportable = true;   // include in CSV export
+
     /** Named format hint for the view (e.g. 'currency', 'datetime'). */
     public ?string $format = null;
 
@@ -140,6 +142,17 @@ class Column
     }
 
     /**
+     * Exclude this column from CSV/Excel exports.
+     * Useful for action columns or columns with HTML-only content.
+     */
+    public function excludeFromExport(): static
+    {
+        $this->exportable = false;
+
+        return $this;
+    }
+
+    /**
      * @param  array<int, Action>  $actions
      */
     public function actions(array $actions): static
@@ -194,6 +207,7 @@ class Column
             'htmlRenderer' => $this->htmlRenderer,
             'format'       => $this->format,
             'relation'     => $this->relation,
+            'exportable'   => $this->exportable,
             'actions'      => array_map(fn (Action $a): array => $a->toArray(), $this->actions),
         ];
     }

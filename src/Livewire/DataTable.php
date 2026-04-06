@@ -9,6 +9,7 @@ use Centrex\TallUi\DataTable\Column;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Livewire\Attributes\Url;
 use Livewire\{Component, WithPagination};
 
@@ -39,6 +40,14 @@ class DataTable extends Component
     // ── Pagination ────────────────────────────────────────────────────────
 
     public int $perPage = 15;
+
+    // ── Row selection ─────────────────────────────────────────────────────
+
+    /** Primary key column name used for row selection and export. */
+    public string $primaryKey = 'id';
+
+    /** @var array<int, string> Selected row IDs (stored as strings). */
+    public array $selectedRows = [];
 
     // ── Column definitions (serialization-safe) ───────────────────────────
 
@@ -127,6 +136,134 @@ class DataTable extends Component
     {
         $this->search = '';
         $this->resetPage();
+    }
+
+    // ── Row selection ─────────────────────────────────────────────────────
+
+    public function toggleRow(mixed $rowId): void
+    {
+        $id = (string) $rowId;
+
+        if (in_array($id, $this->selectedRows, true)) {
+            $this->selectedRows = array_values(
+                array_filter($this->selectedRows, fn (string $v): bool => $v !== $id),
+            );
+        } else {
+            $this->selectedRows[] = $id;
+        }
+    }
+
+    public function togglePageSelection(): void
+    {
+        $rows   = $this->getRows();
+        $pageIds = $rows->map(fn ($r): string => (string) data_get($r, $this->primaryKey))->all();
+        $allSelected = empty(array_diff($pageIds, $this->selectedRows));
+
+        if ($allSelected) {
+            $this->selectedRows = array_values(array_diff($this->selectedRows, $pageIds));
+        } else {
+            $this->selectedRows = array_values(array_unique(array_merge($this->selectedRows, $pageIds)));
+        }
+    }
+
+    public function clearSelection(): void
+    {
+        $this->selectedRows = [];
+    }
+
+    // ── Export ────────────────────────────────────────────────────────────
+
+    /**
+     * Returns exportable column definitions (no action columns, must have a key).
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    protected function getExportableColumns(): array
+    {
+        return array_values(array_filter(
+            $this->columnDefs,
+            fn (array $col): bool => ($col['exportable'] ?? true)
+                && ! $col['isActions']
+                && $col['key'] !== null,
+        ));
+    }
+
+    /**
+     * Build a non-paginated query for export, respecting current search/filters.
+     * When rows are selected only those rows are exported; otherwise all matching rows.
+     */
+    protected function buildExportQuery(): Builder
+    {
+        $query = $this->query();
+
+        if ($this->searchIsActive()) {
+            $searchableCols = array_filter(
+                $this->columnDefs,
+                fn (array $col): bool => ($col['searchable'] ?? false) && $col['key'] !== null,
+            );
+
+            if (count($searchableCols) > 0) {
+                $query->where(function (Builder $q) use ($searchableCols): void {
+                    foreach ($searchableCols as $col) {
+                        if ($col['key'] !== null) {
+                            $q->orWhere($col['key'], 'like', '%' . $this->search . '%');
+                        }
+                    }
+                });
+            }
+        }
+
+        $this->applyFilters($query);
+
+        if (! empty($this->selectedRows)) {
+            $query->whereIn($this->primaryKey, $this->selectedRows);
+        }
+
+        if ($this->sortBy !== '') {
+            $query->orderBy($this->sortBy, $this->sortDirection);
+        }
+
+        return $query;
+    }
+
+    /**
+     * Stream a UTF-8 CSV download (Excel-compatible via BOM).
+     * Exports selected rows when a selection exists, otherwise all matching rows.
+     */
+    public function exportCsv(): StreamedResponse
+    {
+        $columns  = $this->getExportableColumns();
+        $query    = $this->buildExportQuery();
+        $label    = ! empty($this->selectedRows)
+            ? count($this->selectedRows) . '-rows'
+            : 'all';
+        $filename = 'export-' . $label . '-' . now()->format('Y-m-d') . '.csv';
+
+        return response()->streamDownload(function () use ($columns, $query): void {
+            $handle = fopen('php://output', 'w');
+
+            // UTF-8 BOM so Excel opens it correctly
+            fwrite($handle, "\xEF\xBB\xBF");
+
+            // Header row
+            fputcsv($handle, array_column($columns, 'label'));
+
+            // Data rows – chunked to avoid memory spikes on large datasets
+            $query->chunk(500, function ($rows) use ($handle, $columns): void {
+                foreach ($rows as $row) {
+                    $csvRow = [];
+                    foreach ($columns as $col) {
+                        $value = data_get($row, $col['key'] ?? '');
+                        $csvRow[] = is_array($value)
+                            ? implode(', ', $value)
+                            : (string) ($value ?? '');
+                    }
+                    fputcsv($handle, $csvRow);
+                }
+            });
+
+            fclose($handle);
+        }, $filename, ['Content-Type' => 'text/csv; charset=UTF-8']);
     }
 
     public function updatedSearch(): void
@@ -260,11 +397,19 @@ class DataTable extends Component
     public function render(): View
     {
         $filterDefs = method_exists($this, 'getFilterDefs') ? $this->getFilterDefs() : [];
+        $rows       = $this->getRows();
+
+        $pageIds         = $rows->map(fn ($r): string => (string) data_get($r, $this->primaryKey))->all();
+        $selectedOnPage  = count(array_intersect($pageIds, $this->selectedRows));
+        $totalOnPage     = count($pageIds);
 
         return view('tallui::livewire.data-table', [
-            'rows'       => $this->getRows(),
-            'columns'    => $this->columnDefs,
-            'filterDefs' => $filterDefs,
+            'rows'                  => $rows,
+            'columns'               => $this->columnDefs,
+            'filterDefs'            => $filterDefs,
+            'primaryKey'            => $this->primaryKey,
+            'pageFullySelected'     => $totalOnPage > 0 && $selectedOnPage === $totalOnPage,
+            'pagePartiallySelected' => $selectedOnPage > 0 && $selectedOnPage < $totalOnPage,
         ]);
     }
 }
