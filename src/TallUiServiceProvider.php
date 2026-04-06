@@ -43,6 +43,9 @@ class TallUiServiceProvider extends ServiceProvider
         // Remap <x-icon> from BladeUI Icons to <x-svg> to avoid collision
         Blade::component(\BladeUI\Icons\Components\Icon::class, 'svg');
 
+        // Also expose as <x-tallui-icon name="o-pencil" /> for use within package views
+        Blade::component(\BladeUI\Icons\Components\Icon::class, 'tallui-icon');
+
         /** @var string $prefix */
         $prefix = config('tallui.prefix', 'tallui');
 
