@@ -1,4 +1,4 @@
-<div wire:key="tallui-datatable-{{ $this->id }}">
+<div wire:key="tallui-datatable-{{ $this->getId() }}">
 
     {{-- ═══════════════════════════════════════════════════
          TOOLBAR  (search · filter toggle · per-page)
