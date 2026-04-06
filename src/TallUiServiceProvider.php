@@ -74,6 +74,7 @@ class TallUiServiceProvider extends ServiceProvider
         Blade::component("{$prefix}-error", View\Components\ErrorMessage::class);
 
         // Interactive / layout
+        Blade::component("{$prefix}-modal", View\Components\Modal::class);
         Blade::component("{$prefix}-accordion", View\Components\Accordion::class);
         Blade::component("{$prefix}-carousel", View\Components\Carousel::class);
         Blade::component("{$prefix}-drawer", View\Components\Drawer::class);
