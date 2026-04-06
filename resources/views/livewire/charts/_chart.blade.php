@@ -1,5 +1,5 @@
 <div
-    wire:key="tallui-chart-{{ $this->id }}"
+    wire:key="tallui-chart-{{ $this->getId() }}"
     @if($poll > 0) wire:poll.{{ $poll }}ms @endif
     x-data="tallUiChart(@js($this->buildOptions()), '{{ $this->id }}')"
     x-init="initChart()"
