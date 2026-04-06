@@ -5,8 +5,11 @@ declare(strict_types = 1);
 namespace Centrex\TallUi;
 
 use Centrex\TallUi\Commands\{TallUiBootcampCommand, TallUiInstallCommand};
+use Centrex\TallUi\Livewire\Charts\{AreaChart, BarChart, LineChart, PieChart};
+use Centrex\TallUi\Livewire\DataTable;
 use Illuminate\Support\{Arr, ServiceProvider};
 use Illuminate\Support\Facades\Blade;
+use Livewire\Livewire;
 
 class TallUiServiceProvider extends ServiceProvider
 {
@@ -15,7 +18,9 @@ class TallUiServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $this->loadViewsFrom(__DIR__ . '/../resources/views', 'tallui');
         $this->registerComponents();
+        $this->registerLivewireComponents();
         $this->registerBladeDirectives();
 
         $this->loadRoutesFrom(__DIR__ . '/../routes/web.php');
@@ -25,20 +30,48 @@ class TallUiServiceProvider extends ServiceProvider
                 __DIR__ . '/../config/config.php' => config_path('tallui.php'),
             ], 'tallui-config');
 
-            // Registering package commands.
+            $this->publishes([
+                __DIR__ . '/../resources/views' => resource_path('views/vendor/tallui'),
+            ], 'tallui-views');
+
             $this->commands([TallUiInstallCommand::class, TallUiBootcampCommand::class]);
         }
     }
 
     public function registerComponents(): void
     {
-        // Just rename <x-icon> provided by BladeUI Icons to <x-svg> to not collide with ours
+        // Remap <x-icon> from BladeUI Icons to <x-svg> to avoid collision
         Blade::component(\BladeUI\Icons\Components\Icon::class, 'svg');
 
-        // Register the Blade components
-        $this->loadViewComponentsAs(config('tallui.prefix', 'tallui'), [
+        /** @var string $prefix */
+        $prefix = config('tallui.prefix', 'tallui');
+
+        $this->loadViewComponentsAs($prefix, [
+            // Existing
             View\Components\Button::class,
+
+            // Form components
+            View\Components\Form\FormGroup::class,
+            View\Components\Form\Input::class,
+            View\Components\Form\Textarea::class,
+            View\Components\Form\Select::class,
+            View\Components\Form\Checkbox::class,
+            View\Components\Form\Radio::class,
+            View\Components\Form\Toggle::class,
+            View\Components\Form\DatePicker::class,
         ]);
+    }
+
+    public function registerLivewireComponents(): void
+    {
+        /** @var string $prefix */
+        $prefix = config('tallui.prefix', 'tallui');
+
+        Livewire::component("{$prefix}-data-table", DataTable::class);
+        Livewire::component("{$prefix}-line-chart", LineChart::class);
+        Livewire::component("{$prefix}-bar-chart", BarChart::class);
+        Livewire::component("{$prefix}-pie-chart", PieChart::class);
+        Livewire::component("{$prefix}-area-chart", AreaChart::class);
     }
 
     public function registerBladeDirectives(): void
@@ -69,7 +102,7 @@ class TallUiServiceProvider extends ServiceProvider
             $uses = implode(',', $uses);
 
             /**
-             *  Slot names can`t contains dot , eg: `user.city`.
+             *  Slot names can't contain dots, e.g. `user.city`.
              *  So we convert `user.city` to `user___city`
              *
              *  Later, on component it will be replaced back.
@@ -87,10 +120,8 @@ class TallUiServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        // Automatically apply the package configuration
         $this->mergeConfigFrom(__DIR__ . '/../config/config.php', 'tallui');
 
-        // Register the main class to use with the facade
         $this->app->singleton('tallui', fn (): TallUi => new TallUi());
     }
 }

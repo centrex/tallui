@@ -11,31 +11,58 @@ return [
      *
      *    prefix => ''
      *              <x-button />
-     *              <x-card />
+     *              <livewire:data-table />
      *
-     *    prefix => 'tallui-'
+     *    prefix => 'tallui'
      *               <x-tallui-button />
-     *               <x-tallui-card />
-     *
+     *               <livewire:tallui-data-table />
      */
-    'prefix' => '',
+    'prefix' => 'tallui',
 
     /**
      * Default route prefix.
      *
-     * Some TallUI components make network request to its internal routes.
+     * Some TallUI components make network requests to internal routes.
      *
      *      route_prefix => ''
-     *          - Spotlight: '/tallui/spotlight'
-     *          - Editor: '/tallui/upload'
-     *          - ...
+     *          - Select search: '/tallui/select-search'
      *
      *      route_prefix => 'my-components'
-     *          - Spotlight: '/my-components/tallui/spotlight'
-     *          - Editor: '/my-components/tallui/upload'
-     *          - ...
+     *          - Select search: '/my-components/tallui/select-search'
      */
     'route_prefix' => '',
+
+    /**
+     * DataTable component settings.
+     */
+    'datatable' => [
+        'per_page'         => 15,
+        'per_page_options' => [10, 15, 25, 50, 100],
+        'striped'          => true,
+    ],
+
+    /**
+     * Chart component settings.
+     */
+    'charts' => [
+        'apexcharts_cdn' => 'https://cdn.jsdelivr.net/npm/apexcharts',
+        'default_height' => 350,
+        'default_poll'   => 0,
+        'theme'          => 'light',
+        'cache_ttl'      => 0,   // seconds; 0 = disabled (override per component via $cacheTtl)
+    ],
+
+    'cache' => [
+        'store' => null,   // null = default store; set to 'redis' for tag-based invalidation
+    ],
+
+    /**
+     * Form component settings.
+     */
+    'forms' => [
+        'size'              => 'md',
+        'searchable_models' => [],
+    ],
 
     /**
      * Components settings
@@ -43,6 +70,6 @@ return [
     'components' => [
         'spotlight' => [
             'class' => 'App\Support\Spotlight',
-        ]
-    ]
+        ],
+    ],
 ];

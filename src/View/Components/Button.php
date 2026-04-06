@@ -4,13 +4,14 @@ declare(strict_types = 1);
 
 namespace Centrex\TallUi\View\Components;
 
+use Centrex\TallUi\Concerns\HasUuid;
 use Closure;
 use Illuminate\Contracts\View\View;
 use Illuminate\View\Component;
 
 class Button extends Component
 {
-    public string $uuid;
+    use HasUuid;
 
     public string $tooltipPosition = 'lg:tooltip-top';
 
@@ -31,9 +32,9 @@ class Button extends Component
         public ?string $tooltipRight = null,
         public ?string $tooltipBottom = null,
     ) {
-        $this->uuid = 'tallui' . md5(serialize($this)) . $id;
         $this->tooltip ??= $this->tooltipLeft ?? $this->tooltipRight ?? $this->tooltipBottom;
         $this->tooltipPosition = $this->tooltipLeft ? 'lg:tooltip-left' : ($this->tooltipRight ? 'lg:tooltip-right' : ($this->tooltipBottom ? 'lg:tooltip-bottom' : 'lg:tooltip-top'));
+        $this->generateUuid($id);
     }
 
     public function spinnerTarget(): ?string
