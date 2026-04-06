@@ -59,6 +59,7 @@ class TallUiServiceProvider extends ServiceProvider
         Blade::component("{$prefix}-toggle", View\Components\Form\Toggle::class);
         Blade::component("{$prefix}-date-picker", View\Components\Form\DatePicker::class);
         Blade::component("{$prefix}-badge", View\Components\Badge::class);
+        Blade::component("{$prefix}-toast", View\Components\ToastContainer::class);
     }
 
     public function registerLivewireComponents(): void
