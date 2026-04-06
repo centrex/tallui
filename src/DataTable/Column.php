@@ -6,15 +6,20 @@ namespace Centrex\TallUi\DataTable;
 
 class Column
 {
-    public bool $sortable    = false;
-    public bool $searchable  = false;
-    public bool $isBadge     = false;
-    public bool $isActions   = false;
-    public bool $isRaw       = false;   // render value as {!! !!} trusted HTML
-    public bool $isHtml      = false;   // render via view or renderer class
+    public bool $sortable = false;
+
+    public bool $searchable = false;
+
+    public bool $isBadge = false;
+
+    public bool $isActions = false;
+
+    public bool $isRaw = false;   // render value as {!! !!} trusted HTML
+
+    public bool $isHtml = false;   // render via view or renderer class
 
     /** Named format hint for the view (e.g. 'currency', 'datetime'). */
-    public ?string $format   = null;
+    public ?string $format = null;
 
     /** DaisyUI badge color modifier when isBadge = true. */
     public ?string $badgeColor = null;
@@ -73,8 +78,8 @@ class Column
      */
     public function badge(string $defaultColor = 'neutral', array $colors = []): static
     {
-        $this->isBadge     = true;
-        $this->badgeColor  = $defaultColor;
+        $this->isBadge = true;
+        $this->badgeColor = $defaultColor;
         $this->badgeColors = $colors;
 
         return $this;
@@ -102,8 +107,8 @@ class Column
      */
     public function view(string $bladeName): static
     {
-        $this->isHtml    = true;
-        $this->htmlView  = $bladeName;
+        $this->isHtml = true;
+        $this->htmlView = $bladeName;
 
         return $this;
     }
@@ -115,8 +120,8 @@ class Column
      */
     public function html(string $rendererClass): static
     {
-        $this->isHtml        = true;
-        $this->htmlRenderer  = $rendererClass;
+        $this->isHtml = true;
+        $this->htmlRenderer = $rendererClass;
 
         return $this;
     }
@@ -140,7 +145,7 @@ class Column
     public function actions(array $actions): static
     {
         $this->isActions = true;
-        $this->actions   = $actions;
+        $this->actions = $actions;
 
         return $this;
     }

@@ -114,8 +114,8 @@ describe('Column::actions()', function (): void {
     });
 
     it('stores actions array', function (): void {
-        $action = \Centrex\TallUi\DataTable\Action::make('Edit');
-        $col    = Column::make('Actions')->actions([$action]);
+        $action = Centrex\TallUi\DataTable\Action::make('Edit');
+        $col = Column::make('Actions')->actions([$action]);
 
         expect($col->actions)->toHaveCount(1)
             ->and($col->actions[0])->toBe($action);

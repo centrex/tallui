@@ -2,12 +2,8 @@
 
 declare(strict_types = 1);
 
-use Centrex\TallUi\Livewire\Charts\AreaChart;
-use Centrex\TallUi\Livewire\Charts\BarChart;
-use Centrex\TallUi\Livewire\Charts\LineChart;
-use Centrex\TallUi\Livewire\Charts\PieChart;
-use Centrex\TallUi\Tests\Fixtures\Charts\SalesChart;
-use Centrex\TallUi\Tests\Fixtures\Charts\TestDataProvider;
+use Centrex\TallUi\Livewire\Charts\{AreaChart, BarChart, LineChart, PieChart};
+use Centrex\TallUi\Tests\Fixtures\Charts\{SalesChart, TestDataProvider};
 
 use function Pest\Livewire\livewire;
 
@@ -120,7 +116,7 @@ describe('AreaChart', function (): void {
 describe('Chart data provider', function (): void {
     it('uses data() from subclass when no dataProvider set', function (): void {
         $chart = livewire(SalesChart::class)->instance();
-        $data  = $chart->chartData;
+        $data = $chart->chartData;
 
         expect($data['categories'])->toBe(['Q1', 'Q2', 'Q3', 'Q4'])
             ->and($data['series'][0]['name'])->toBe('Sales');
@@ -146,28 +142,28 @@ describe('Chart data provider', function (): void {
 
 describe('buildOptions()', function (): void {
     it('includes chart type in options', function (): void {
-        $chart   = livewire(LineChart::class)->instance();
+        $chart = livewire(LineChart::class)->instance();
         $options = $chart->buildOptions();
 
         expect($options['chart']['type'])->toBe('line');
     });
 
     it('includes height in options', function (): void {
-        $chart   = livewire(LineChart::class, ['height' => 300])->instance();
+        $chart = livewire(LineChart::class, ['height' => 300])->instance();
         $options = $chart->buildOptions();
 
         expect($options['chart']['height'])->toBe(300);
     });
 
     it('includes title when set', function (): void {
-        $chart   = livewire(LineChart::class, ['title' => 'My Chart'])->instance();
+        $chart = livewire(LineChart::class, ['title' => 'My Chart'])->instance();
         $options = $chart->buildOptions();
 
         expect($options['title']['text'])->toBe('My Chart');
     });
 
     it('includes categories from data', function (): void {
-        $chart   = livewire(SalesChart::class)->instance();
+        $chart = livewire(SalesChart::class)->instance();
         $options = $chart->buildOptions();
 
         expect($options['xaxis']['categories'])->toBe(['Q1', 'Q2', 'Q3', 'Q4']);

@@ -3,7 +3,6 @@
 declare(strict_types = 1);
 
 use Centrex\TallUi\Concerns\CachesData;
-use Illuminate\Support\Facades\Cache;
 
 // Minimal host that uses the trait without Livewire overhead
 class CacheHost
@@ -23,14 +22,14 @@ class CacheHost
 describe('CachesData::cacheKey()', function (): void {
     it('namespaces the key with tallui:', function (): void {
         $host = new CacheHost();
-        $key  = $host->cacheKey('datatable', 'abc123');
+        $key = $host->cacheKey('datatable', 'abc123');
 
         expect($key)->toBe('tallui:datatable:abc123');
     });
 
     it('filters empty parts', function (): void {
         $host = new CacheHost();
-        $key  = $host->cacheKey('datatable', '', 'xyz');
+        $key = $host->cacheKey('datatable', '', 'xyz');
 
         expect($key)->toBe('tallui:datatable:xyz');
     });
@@ -38,7 +37,7 @@ describe('CachesData::cacheKey()', function (): void {
 
 describe('CachesData::rememberCache()', function (): void {
     it('executes callback when cacheTtl is 0', function (): void {
-        $host    = new CacheHost();
+        $host = new CacheHost();
         $invoked = 0;
 
         $host->rememberCache('key', function () use (&$invoked): string {
@@ -58,9 +57,9 @@ describe('CachesData::rememberCache()', function (): void {
     });
 
     it('caches the callback result when cacheTtl > 0', function (): void {
-        $host          = new CacheHost();
+        $host = new CacheHost();
         $host->cacheTtl = 60;
-        $invoked       = 0;
+        $invoked = 0;
 
         $result1 = $host->rememberCache('cache-test-key', function () use (&$invoked): string {
             $invoked++;
@@ -82,7 +81,7 @@ describe('CachesData::rememberCache()', function (): void {
 
 describe('CachesData::forgetCache()', function (): void {
     it('removes a cached key', function (): void {
-        $host          = new CacheHost();
+        $host = new CacheHost();
         $host->cacheTtl = 60;
 
         $host->rememberCache('forget-me', fn (): string => 'original');
@@ -102,7 +101,7 @@ describe('CachesData::forgetCache()', function (): void {
 
 describe('CachesData::invalidateCache()', function (): void {
     it('clears all keys registered under the component tag', function (): void {
-        $host          = new CacheHost();
+        $host = new CacheHost();
         $host->cacheTtl = 60;
 
         $host->rememberCacheTracked('tag-key-1', fn (): string => 'v1');

@@ -24,7 +24,7 @@ class Textarea extends Component
         public string $size = '',
     ) {
         $configSize = config('tallui.forms.size', 'md');
-        $resolved   = $size ?: $configSize;
+        $resolved = $size ?: $configSize;
 
         $this->sizeClass = match ($resolved) {
             'xs'    => 'textarea-xs',

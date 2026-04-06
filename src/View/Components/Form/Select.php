@@ -29,7 +29,7 @@ class Select extends Component
         mixed $options = [],
     ) {
         $configSize = config('tallui.forms.size', 'md');
-        $resolved   = $size ?: $configSize;
+        $resolved = $size ?: $configSize;
 
         $this->sizeClass = match ($resolved) {
             'xs'    => 'select-xs',

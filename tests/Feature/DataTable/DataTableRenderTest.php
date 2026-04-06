@@ -36,7 +36,7 @@ it('renders badge for status column', function (): void {
 it('renders pagination when rows exceed per page', function (): void {
     // Create enough rows to trigger pagination
     foreach (range(1, 20) as $i) {
-        User::create(['name' => "User $i", 'email' => "user{$i}@test.com"]);
+        User::create(['name' => "User {$i}", 'email' => "user{$i}@test.com"]);
     }
 
     livewire(UsersTable::class)

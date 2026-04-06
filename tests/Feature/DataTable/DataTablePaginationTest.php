@@ -9,7 +9,7 @@ use function Pest\Livewire\livewire;
 
 beforeEach(function (): void {
     foreach (range(1, 25) as $i) {
-        User::create(['name' => "User $i", 'email' => "user{$i}@test.com"]);
+        User::create(['name' => "User {$i}", 'email' => "user{$i}@test.com"]);
     }
 });
 

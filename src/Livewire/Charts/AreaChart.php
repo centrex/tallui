@@ -17,9 +17,9 @@ class AreaChart extends BaseChart
     protected function defaultOptions(): array
     {
         return [
-            'stroke' => ['curve' => 'smooth', 'width' => 2],
-            'fill'   => ['type' => 'gradient', 'gradient' => ['opacityFrom' => 0.4, 'opacityTo' => 0.05]],
-            'chart'  => ['stacked' => $this->stacked],
+            'stroke'     => ['curve' => 'smooth', 'width' => 2],
+            'fill'       => ['type' => 'gradient', 'gradient' => ['opacityFrom' => 0.4, 'opacityTo' => 0.05]],
+            'chart'      => ['stacked' => $this->stacked],
             'dataLabels' => ['enabled' => false],
         ];
     }

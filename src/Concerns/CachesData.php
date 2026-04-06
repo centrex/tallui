@@ -32,6 +32,7 @@ trait CachesData
      * Execute $callback, caching the result when $cacheTtl > 0.
      *
      * @template T
+     *
      * @param  callable(): T  $callback
      * @return T
      */
@@ -61,8 +62,8 @@ trait CachesData
      */
     public function invalidateCache(): void
     {
-        $store   = Cache::store($this->cacheStore);
-        $tagKey  = $this->componentCacheTag();
+        $store = Cache::store($this->cacheStore);
+        $tagKey = $this->componentCacheTag();
 
         // Tag-based invalidation (Redis, Memcached)
         if (method_exists($store, 'tags')) {
@@ -88,6 +89,7 @@ trait CachesData
      * Like rememberCache() but also registers the key for tag-less invalidation.
      *
      * @template T
+     *
      * @param  callable(): T  $callback
      * @return T
      */
@@ -97,8 +99,8 @@ trait CachesData
             return $callback();
         }
 
-        $store   = Cache::store($this->cacheStore);
-        $tagKey  = $this->componentCacheTag();
+        $store = Cache::store($this->cacheStore);
+        $tagKey = $this->componentCacheTag();
 
         // Tag-based stores handle invalidation automatically
         if (method_exists($store, 'tags')) {
@@ -111,7 +113,7 @@ trait CachesData
         /** @var array<string> $keys */
         $keys = $store->get($registryKey, []);
 
-        if (! in_array($key, $keys, true)) {
+        if (!in_array($key, $keys, true)) {
             $keys[] = $key;
             // Keep registry alive longer than the cached items
             $store->put($registryKey, $keys, $this->cacheTtl * 10);

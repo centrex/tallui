@@ -26,7 +26,7 @@ class DatePicker extends Component
         public string $size = '',
     ) {
         $configSize = config('tallui.forms.size', 'md');
-        $resolved   = $size ?: $configSize;
+        $resolved = $size ?: $configSize;
 
         $this->sizeClass = match ($resolved) {
             'xs'    => 'input-xs',

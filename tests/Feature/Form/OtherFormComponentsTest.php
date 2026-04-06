@@ -2,12 +2,7 @@
 
 declare(strict_types = 1);
 
-use Centrex\TallUi\View\Components\Form\Checkbox;
-use Centrex\TallUi\View\Components\Form\DatePicker;
-use Centrex\TallUi\View\Components\Form\FormGroup;
-use Centrex\TallUi\View\Components\Form\Radio;
-use Centrex\TallUi\View\Components\Form\Textarea;
-use Centrex\TallUi\View\Components\Form\Toggle;
+use Centrex\TallUi\View\Components\Form\{Checkbox, DatePicker, FormGroup, Radio, Textarea, Toggle};
 
 describe('FormGroup', function (): void {
     it('has no label by default', function (): void {

@@ -6,13 +6,19 @@ namespace Centrex\TallUi\DataTable;
 
 class Action
 {
-    public ?string $icon          = null;
-    public ?string $route         = null;
-    public ?string $routeKey      = 'id';
-    public ?string $emitEvent     = null;
-    public ?string $emitKey       = 'id';
+    public ?string $icon = null;
+
+    public ?string $route = null;
+
+    public ?string $routeKey = 'id';
+
+    public ?string $emitEvent = null;
+
+    public ?string $emitKey = 'id';
+
     public ?string $confirmMessage = null;
-    public string $color          = 'ghost';
+
+    public string $color = 'ghost';
 
     public function __construct(
         public readonly string $label,
@@ -39,7 +45,7 @@ class Action
 
     public function route(string $route, string $key = 'id'): static
     {
-        $this->route    = $route;
+        $this->route = $route;
         $this->routeKey = $key;
 
         return $this;
@@ -48,7 +54,7 @@ class Action
     public function emit(string $event, string $key = 'id'): static
     {
         $this->emitEvent = $event;
-        $this->emitKey   = $key;
+        $this->emitKey = $key;
 
         return $this;
     }

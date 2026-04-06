@@ -42,7 +42,7 @@ it('resets direction to asc when clicking a different column', function (): void
 
 it('sort resets to page 1', function (): void {
     foreach (range(1, 20) as $i) {
-        User::create(['name' => "User $i", 'email' => "user{$i}@test.com"]);
+        User::create(['name' => "User {$i}", 'email' => "user{$i}@test.com"]);
     }
 
     livewire(UsersTable::class)

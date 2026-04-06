@@ -141,7 +141,7 @@ describe('filter state management', function (): void {
 
     it('updatedTableFilters resets to page 1', function (): void {
         foreach (range(1, 20) as $i) {
-            User::create(['name' => "Extra $i", 'email' => "extra{$i}@test.com", 'status' => 'active']);
+            User::create(['name' => "Extra {$i}", 'email' => "extra{$i}@test.com", 'status' => 'active']);
         }
 
         livewire(FilteredUsersTable::class)

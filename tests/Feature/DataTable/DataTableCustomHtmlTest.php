@@ -2,8 +2,7 @@
 
 declare(strict_types = 1);
 
-use Centrex\TallUi\Tests\Fixtures\DataTables\HtmlColumnsTable;
-use Centrex\TallUi\Tests\Fixtures\DataTables\UsersTable;
+use Centrex\TallUi\Tests\Fixtures\DataTables\{HtmlColumnsTable, UsersTable};
 use Centrex\TallUi\Tests\Fixtures\Models\User;
 
 use function Pest\Livewire\livewire;

@@ -4,8 +4,7 @@ declare(strict_types = 1);
 
 namespace Centrex\TallUi\Tests\Fixtures\DataTables;
 
-use Centrex\TallUi\DataTable\Action;
-use Centrex\TallUi\DataTable\Column;
+use Centrex\TallUi\DataTable\{Action, Column};
 use Centrex\TallUi\Livewire\DataTable;
 use Centrex\TallUi\Tests\Fixtures\Models\User;
 use Illuminate\Database\Eloquent\Builder;

@@ -74,7 +74,7 @@ it('applies search once minSearchLength is met', function (): void {
 it('updatedSearch resets page', function (): void {
     // Create enough rows to have multiple pages
     foreach (range(1, 20) as $i) {
-        User::create(['name' => "Extra User $i", 'email' => "extra{$i}@test.com"]);
+        User::create(['name' => "Extra User {$i}", 'email' => "extra{$i}@test.com"]);
     }
 
     livewire(UsersTable::class)

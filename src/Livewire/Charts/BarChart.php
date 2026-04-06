@@ -19,7 +19,7 @@ class BarChart extends BaseChart
         return [
             'plotOptions' => [
                 'bar' => [
-                    'horizontal'  => $this->horizontal,
+                    'horizontal'   => $this->horizontal,
                     'borderRadius' => 4,
                 ],
             ],

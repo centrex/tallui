@@ -5,8 +5,7 @@ declare(strict_types = 1);
 namespace Centrex\TallUi\Tests\Fixtures\DataTables;
 
 use Centrex\TallUi\Concerns\WithFilters;
-use Centrex\TallUi\DataTable\Column;
-use Centrex\TallUi\DataTable\Filter;
+use Centrex\TallUi\DataTable\{Column, Filter};
 use Centrex\TallUi\Livewire\DataTable;
 use Centrex\TallUi\Tests\Fixtures\Models\User;
 use Illuminate\Database\Eloquent\Builder;

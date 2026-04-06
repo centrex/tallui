@@ -55,7 +55,7 @@ trait WithFilters
     public function resetFilters(): void
     {
         $this->tableFilters = [];
-        $this->filtersOpen  = false;
+        $this->filtersOpen = false;
         $this->resetPage();
     }
 
@@ -68,7 +68,7 @@ trait WithFilters
 
     public function toggleFilters(): void
     {
-        $this->filtersOpen = ! $this->filtersOpen;
+        $this->filtersOpen = !$this->filtersOpen;
     }
 
     public function updatedTableFilters(): void
@@ -120,7 +120,7 @@ trait WithFilters
 
         if ($filter->multiple && is_array($value) && count($value) > 0) {
             $query->whereIn($filter->column, $value);
-        } elseif (! $filter->multiple && $value !== '') {
+        } elseif (!$filter->multiple && $value !== '') {
             $query->where($filter->column, $value);
         }
     }
@@ -137,10 +137,10 @@ trait WithFilters
     private function applyDateRangeFilter(Builder $query, Filter $filter): void
     {
         $fromKey = $filter->column . '_from';
-        $toKey   = ($filter->toColumn ?? $filter->column) . '_to';
+        $toKey = ($filter->toColumn ?? $filter->column) . '_to';
 
         $from = $this->tableFilters[$fromKey] ?? '';
-        $to   = $this->tableFilters[$toKey] ?? '';
+        $to = $this->tableFilters[$toKey] ?? '';
 
         if ($from !== '' && $from !== null) {
             $query->whereDate($filter->column, '>=', $from);

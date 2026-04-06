@@ -17,7 +17,7 @@ class PieChart extends BaseChart
     protected function defaultOptions(): array
     {
         return [
-            'legend' => ['position' => 'bottom'],
+            'legend'     => ['position' => 'bottom'],
             'dataLabels' => ['enabled' => true],
         ];
     }
@@ -34,14 +34,14 @@ class PieChart extends BaseChart
 
         return array_merge_recursive($this->defaultOptions(), [
             'chart' => [
-                'type'   => $this->chartType(),
-                'height' => $this->height,
-                'theme'  => ['mode' => $this->theme],
+                'type'    => $this->chartType(),
+                'height'  => $this->height,
+                'theme'   => ['mode' => $this->theme],
                 'toolbar' => ['show' => false],
             ],
             'series' => $data['series'] ?? [],
             'labels' => $data['categories'] ?? [],
-            'title' => $this->title ? ['text' => $this->title, 'align' => 'left'] : [],
+            'title'  => $this->title ? ['text' => $this->title, 'align' => 'left'] : [],
         ]);
     }
 }

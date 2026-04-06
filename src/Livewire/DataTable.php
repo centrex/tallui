@@ -10,8 +10,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Livewire\Attributes\Url;
-use Livewire\Component;
-use Livewire\WithPagination;
+use Livewire\{Component, WithPagination};
 
 class DataTable extends Component
 {
@@ -103,7 +102,7 @@ class DataTable extends Component
 
     public function mount(): void
     {
-        $this->perPage    = (int) config('tallui.datatable.per_page', 15);
+        $this->perPage = (int) config('tallui.datatable.per_page', 15);
         $this->columnDefs = array_map(
             fn (Column $col): array => $col->toArray(),
             $this->columns(),
@@ -117,7 +116,7 @@ class DataTable extends Component
         if ($this->sortBy === $column) {
             $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
         } else {
-            $this->sortBy        = $column;
+            $this->sortBy = $column;
             $this->sortDirection = 'asc';
         }
 

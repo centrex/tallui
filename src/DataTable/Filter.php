@@ -6,17 +6,18 @@ namespace Centrex\TallUi\DataTable;
 
 class Filter
 {
-    public const TYPE_TEXT       = 'text';
-    public const TYPE_SELECT     = 'select';
-    public const TYPE_DATE       = 'date';
+    public const TYPE_TEXT = 'text';
+    public const TYPE_SELECT = 'select';
+    public const TYPE_DATE = 'date';
     public const TYPE_DATE_RANGE = 'date_range';
-    public const TYPE_BOOLEAN    = 'boolean';
+    public const TYPE_BOOLEAN = 'boolean';
 
     /** @var array<int|string, string> */
     public array $options = [];
 
     public ?string $placeholder = null;
-    public bool $multiple       = false;
+
+    public bool $multiple = false;
 
     /**
      * For date_range: the "to" column key.
@@ -42,7 +43,7 @@ class Filter
      */
     public static function select(string $label, string $column, array $options = []): static
     {
-        $filter          = new static($label, $column, self::TYPE_SELECT);
+        $filter = new static($label, $column, self::TYPE_SELECT);
         $filter->options = $options;
 
         return $filter;
@@ -59,7 +60,7 @@ class Filter
      */
     public static function dateRange(string $label, string $fromColumn, ?string $toColumn = null): static
     {
-        $filter           = new static($label, $fromColumn, self::TYPE_DATE_RANGE);
+        $filter = new static($label, $fromColumn, self::TYPE_DATE_RANGE);
         $filter->toColumn = $toColumn ?? $fromColumn;
 
         return $filter;

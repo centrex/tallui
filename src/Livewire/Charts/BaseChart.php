@@ -14,11 +14,15 @@ abstract class BaseChart extends Component
 {
     use CachesData;
 
-    public string $title    = '';
+    public string $title = '';
+
     public string $subtitle = '';
-    public int $height      = 0;
-    public int $poll        = 0;
-    public string $theme    = '';
+
+    public int $height = 0;
+
+    public int $poll = 0;
+
+    public string $theme = '';
 
     /** FQCN implementing ChartDataProvider */
     public ?string $dataProvider = null;
@@ -118,7 +122,7 @@ abstract class BaseChart extends Component
                 'categories' => $data['categories'] ?? [],
             ],
             'series' => $data['series'] ?? [],
-            'title' => $this->title ? [
+            'title'  => $this->title ? [
                 'text'  => $this->title,
                 'align' => 'left',
             ] : [],
