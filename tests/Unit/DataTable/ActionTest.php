@@ -22,9 +22,9 @@ describe('Action::make()', function (): void {
 
 describe('Action fluent modifiers', function (): void {
     it('sets icon', function (): void {
-        $action = Action::make('Edit')->icon('o-pencil');
+        $action = Action::make('Edit')->icon('heroicon-o-pencil');
 
-        expect($action->icon)->toBe('o-pencil');
+        expect($action->icon)->toBe('heroicon-o-pencil');
     });
 
     it('sets color', function (): void {
@@ -88,14 +88,14 @@ describe('Action fluent modifiers', function (): void {
 describe('Action::toArray()', function (): void {
     it('serializes all fields', function (): void {
         $arr = Action::make('Edit')
-            ->icon('o-pencil')
+            ->icon('heroicon-o-pencil')
             ->color('info')
             ->route('users.edit', 'id')
             ->toArray();
 
         expect($arr)
             ->toHaveKey('label', 'Edit')
-            ->toHaveKey('icon', 'o-pencil')
+            ->toHaveKey('icon', 'heroicon-o-pencil')
             ->toHaveKey('color', 'info')
             ->toHaveKey('route', 'users.edit')
             ->toHaveKey('routeKey', 'id')

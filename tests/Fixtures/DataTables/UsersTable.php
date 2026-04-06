@@ -27,7 +27,7 @@ class UsersTable extends DataTable
             ]),
             Column::make('Actions')->actions([
                 Action::make('Edit')
-                    ->icon('o-pencil')
+                    ->icon('heroicon-o-pencil')
                     ->color('info')
                     ->route('users.edit', 'id'),
                 Action::make('Delete')
