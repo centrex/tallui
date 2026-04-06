@@ -58,8 +58,40 @@ class TallUiServiceProvider extends ServiceProvider
         Blade::component("{$prefix}-radio", View\Components\Form\Radio::class);
         Blade::component("{$prefix}-toggle", View\Components\Form\Toggle::class);
         Blade::component("{$prefix}-date-picker", View\Components\Form\DatePicker::class);
-        Blade::component("{$prefix}-badge", View\Components\Badge::class);
-        Blade::component("{$prefix}-toast", View\Components\ToastContainer::class);
+        Blade::component("{$prefix}-badge",         View\Components\Badge::class);
+        Blade::component("{$prefix}-toast",         View\Components\ToastContainer::class);
+
+        // Display & feedback
+        Blade::component("{$prefix}-alert",         View\Components\Alert::class);
+        Blade::component("{$prefix}-avatar",        View\Components\Avatar::class);
+        Blade::component("{$prefix}-breadcrumb",    View\Components\Breadcrumb::class);
+        Blade::component("{$prefix}-loading",       View\Components\Loading::class);
+        Blade::component("{$prefix}-progress",      View\Components\Progress::class);
+        Blade::component("{$prefix}-rating",        View\Components\Rating::class);
+        Blade::component("{$prefix}-stat",          View\Components\Stat::class);
+        Blade::component("{$prefix}-steps",         View\Components\Steps::class);
+        Blade::component("{$prefix}-timeline",      View\Components\Timeline::class);
+        Blade::component("{$prefix}-error",         View\Components\ErrorMessage::class);
+
+        // Interactive / layout
+        Blade::component("{$prefix}-accordion",     View\Components\Accordion::class);
+        Blade::component("{$prefix}-carousel",      View\Components\Carousel::class);
+        Blade::component("{$prefix}-drawer",        View\Components\Drawer::class);
+        Blade::component("{$prefix}-group",         View\Components\Group::class);
+        Blade::component("{$prefix}-image-gallery", View\Components\ImageGallery::class);
+        Blade::component("{$prefix}-menu",          View\Components\Menu::class);
+        Blade::component("{$prefix}-popover",       View\Components\Popover::class);
+        Blade::component("{$prefix}-spotlight",     View\Components\Spotlight::class);
+        Blade::component("{$prefix}-swap",          View\Components\Swap::class);
+        Blade::component("{$prefix}-tab",           View\Components\Tab::class);
+        Blade::component("{$prefix}-tags",          View\Components\Tags::class);
+        Blade::component("{$prefix}-theme-toggle",  View\Components\ThemeToggle::class);
+        Blade::component("{$prefix}-calendar",      View\Components\Calendar::class);
+
+        // Form
+        Blade::component("{$prefix}-file",         View\Components\Form\File::class);
+        Blade::component("{$prefix}-range",        View\Components\Form\Range::class);
+        Blade::component("{$prefix}-text-editor",  View\Components\Form\TextEditor::class);
     }
 
     public function registerLivewireComponents(): void
