@@ -5,7 +5,18 @@
 [![GitHub Code Style Action Status](https://img.shields.io/github/actions/workflow/status/centrex/tallui/fix-php-code-style-issues.yml?branch=main&label=code%20style&style=flat-square)](https://github.com/centrex/tallui/actions?query=workflow%3A"Fix+PHP+code+style+issues"+branch%3Amain)
 [![Total Downloads](https://img.shields.io/packagist/dt/centrex/tallui?style=flat-square)](https://packagist.org/packages/centrex/tallui)
 
-This is where your description should go. Limit it to a paragraph or two. Consider adding a small example.
+🚀 Introduction
+Tall UI is a library of components and resources to empower your Laravel and Livewire application development.
+
+Starting a new project with Livewire can be time-consuming when you have to create all the components from scratch. Tall UI helps to skip this step and get you straight to the development phase.
+
+🔥 You get with Wire UI:
+Form and UI components
+Notifications
+Confirmation notifications
+Card, modals, avatar, buttons, badges, dropdowns, and more
+All Heroicons
+All Phosphor icons
 
 ## Contents
 
