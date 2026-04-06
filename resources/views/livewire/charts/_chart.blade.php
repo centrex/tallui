@@ -1,7 +1,7 @@
 <div
     wire:key="tallui-chart-{{ $this->getId() }}"
     @if($poll > 0) wire:poll.{{ $poll }}ms @endif
-    x-data="tallUiChart(@js($this->buildOptions()), '{{ $this->id }}')"
+    x-data="tallUiChart(@js($this->buildOptions()), '{{ $this->getId() }}')"
     x-init="initChart()"
     x-on:livewire:updated.window="updateChart(@js($this->buildOptions()))"
 >
