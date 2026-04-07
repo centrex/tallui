@@ -103,6 +103,8 @@ abstract class BaseChart extends Component
         if ($this->cacheTtl === 0) {
             $this->cacheTtl = (int) config('tallui.charts.cache_ttl', 0);
         }
+
+        $this->dispatch('chart-updated', options: $this->buildOptions());
     }
 
     /** @return array<string, mixed> */
@@ -122,15 +124,27 @@ abstract class BaseChart extends Component
                 'categories' => $data['categories'] ?? [],
             ],
             'series' => $data['series'] ?? [],
-            'title'  => $this->title ? [
-                'text'  => $this->title,
+            'title'  => [
+                'text'  => $this->title ?? '',
                 'align' => 'left',
-            ] : [],
-            'subtitle' => $this->subtitle ? [
-                'text'  => $this->subtitle,
+                'style' => [
+                    'fontSize' => '14px',
+                ],
+            ],
+
+            'subtitle' => [
+                'text'  => $this->subtitle ?? '',
                 'align' => 'left',
-            ] : [],
+                'style' => [],
+            ],
         ]);
+    }
+
+    public function updated($property): void
+    {
+        if (in_array($property, ['title', 'subtitle', 'theme', 'dataProvider'])) {
+            $this->dispatch('chart-updated', options: $this->buildOptions());
+        }
     }
 
     public function render(): View
