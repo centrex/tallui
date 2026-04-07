@@ -64,7 +64,7 @@ class Notification extends Component
                          x-transition:leave-start="opacity-100 translate-y-0"
                          x-transition:leave-end="opacity-0 -translate-y-2"
                          class="alert alert-success shadow-lg pointer-events-auto rounded-2xl text-sm" role="alert">
-                        <x-tallui-icon name="o-check-circle" class="w-5 h-5 shrink-0" />
+                        <x-tallui-icon name="heroicon-o-check-circle" class="w-5 h-5 shrink-0" />
                         <span>{{ session('success') }}</span>
                     </div>
                 @endif
@@ -76,7 +76,7 @@ class Notification extends Component
                          x-transition:leave-start="opacity-100 translate-y-0"
                          x-transition:leave-end="opacity-0 -translate-y-2"
                          class="alert alert-error shadow-lg pointer-events-auto rounded-2xl text-sm" role="alert">
-                        <x-tallui-icon name="o-x-circle" class="w-5 h-5 shrink-0" />
+                        <x-tallui-icon name="heroicon-o-x-circle" class="w-5 h-5 shrink-0" />
                         <span>{{ session('error') }}</span>
                     </div>
                 @endif
@@ -88,7 +88,7 @@ class Notification extends Component
                          x-transition:leave-start="opacity-100 translate-y-0"
                          x-transition:leave-end="opacity-0 -translate-y-2"
                          class="alert alert-warning shadow-lg pointer-events-auto rounded-2xl text-sm" role="alert">
-                        <x-tallui-icon name="o-exclamation-triangle" class="w-5 h-5 shrink-0" />
+                        <x-tallui-icon name="heroicon-o-exclamation-triangle" class="w-5 h-5 shrink-0" />
                         <span>{{ session('warning') }}</span>
                     </div>
                 @endif
@@ -100,7 +100,7 @@ class Notification extends Component
                          x-transition:leave-start="opacity-100 translate-y-0"
                          x-transition:leave-end="opacity-0 -translate-y-2"
                          class="alert alert-info shadow-lg pointer-events-auto rounded-2xl text-sm" role="alert">
-                        <x-tallui-icon name="o-information-circle" class="w-5 h-5 shrink-0" />
+                        <x-tallui-icon name="heroicon-o-information-circle" class="w-5 h-5 shrink-0" />
                         <span>{{ session('info') ?? session('message') }}</span>
                     </div>
                 @endif

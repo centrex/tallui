@@ -26,10 +26,10 @@ class Alert extends Component
         };
 
         $this->icon ??= match ($type) {
-            'success' => 'o-check-circle',
-            'warning' => 'o-exclamation-triangle',
-            'error'   => 'o-x-circle',
-            default   => 'o-information-circle',
+            'success' => 'heroicon-o-check-circle',
+            'warning' => 'heroicon-o-exclamation-triangle',
+            'error'   => 'heroicon-o-x-circle',
+            default   => 'heroicon-o-information-circle',
         };
     }
 

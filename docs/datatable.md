@@ -40,7 +40,7 @@ class UsersTable extends DataTable
                     ->route('users.edit', 'id'),
 
                 Action::make('Delete')
-                    ->icon('o-trash')
+                    ->icon('heroicon-o-trash')
                     ->color('error')
                     ->confirm('Are you sure you want to delete this user?')
                     ->emit('deleteUser', 'id'),
@@ -87,17 +87,17 @@ Column::make('Role', 'role.name')->sortable(),
 use Centrex\TallUi\DataTable\Action;
 
 Action::make('View')
-    ->icon('o-eye')
+    ->icon('heroicon-o-eye')
     ->color('ghost')
     ->route('users.show', 'id');        // href="{{ route('users.show', $row->id) }}"
 
 Action::make('Approve')
-    ->icon('o-check')
+    ->icon('heroicon-o-check')
     ->color('success')
     ->emit('approveUser', 'id');        // dispatches Livewire event { id: $row->id }
 
 Action::make('Delete')
-    ->icon('o-trash')
+    ->icon('heroicon-o-trash')
     ->color('error')
     ->confirm('Delete this record?')    // uses wire:confirm
     ->emit('deleteUser', 'id');

@@ -90,7 +90,7 @@ describe('Input template content', function (): void {
     });
 
     it('template uses input input-bordered wrapper when icon is set', function (): void {
-        $c = new Input(name: 'email', icon: 'o-envelope');
+        $c = new Input(name: 'email', icon: 'heroicon-o-envelope');
 
         expect(renderInput($c))->toContain('input input-bordered');
     });

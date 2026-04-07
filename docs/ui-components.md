@@ -19,7 +19,7 @@ Dismissible alert banner with automatic icon selection per type.
     Your subscription expires in 3 days.
 </x-tallui-alert>
 
-<x-tallui-alert type="info" icon="o-bell" :dismissible="false">
+<x-tallui-alert type="info" icon="heroicon-o-bell" :dismissible="false">
     New version available.
 </x-tallui-alert>
 ```
@@ -69,7 +69,7 @@ User avatar with image, initials fallback, and presence indicator.
 
 ```blade
 <x-tallui-breadcrumb :items="[
-    ['label' => 'Home',     'url' => '/',          'icon' => 'o-home'],
+    ['label' => 'Home',     'url' => '/',          'icon' => 'heroicon-o-home'],
     ['label' => 'Users',    'url' => '/users'],
     ['label' => 'Edit User'],
 ]" />
@@ -534,9 +534,9 @@ Arrow keys navigate in the lightbox; Escape closes it.
 
 ```blade
 <x-tallui-menu :items="[
-    ['label' => 'Dashboard', 'url' => '/',        'icon' => 'o-home'],
-    ['label' => 'Users',     'url' => '/users',   'icon' => 'o-users', 'active' => true, 'badge' => '12'],
-    ['label' => 'Settings',  'icon' => 'o-cog-6-tooth', 'children' => [
+    ['label' => 'Dashboard', 'url' => '/',        'icon' => 'heroicon-o-home'],
+    ['label' => 'Users',     'url' => '/users',   'icon' => 'heroicon-o-users', 'active' => true, 'badge' => '12'],
+    ['label' => 'Settings',  'icon' => 'heroicon-o-cog-6-tooth', 'children' => [
         ['label' => 'Profile',   'url' => '/settings/profile'],
         ['label' => 'Security',  'url' => '/settings/security'],
     ]],
@@ -642,9 +642,9 @@ Toggle between two states with a rotate or flip animation (DaisyUI `swap`).
 ```blade
 <x-tallui-tab
     :tabs="[
-        ['id' => 'overview',  'label' => 'Overview',  'icon' => 'o-home'],
+        ['id' => 'overview',  'label' => 'Overview',  'icon' => 'heroicon-o-home'],
         ['id' => 'activity',  'label' => 'Activity'],
-        ['id' => 'settings',  'label' => 'Settings',  'icon' => 'o-cog-6-tooth'],
+        ['id' => 'settings',  'label' => 'Settings',  'icon' => 'heroicon-o-cog-6-tooth'],
     ]"
     active="overview"
     variant="bordered"

@@ -39,17 +39,17 @@ Wraps any input with a label and error/helper message — useful for consistent 
     label="Email address"
     type="email"
     placeholder="you@example.com"
-    icon="o-envelope"
+    icon="heroicon-o-envelope"
     :error="$errors->first('email')"
     required
     wire:model.live="email"
 />
 
 {{-- Password with right icon --}}
-<x-tallui-input name="password" label="Password" type="password" icon-right="o-lock-closed" />
+<x-tallui-input name="password" label="Password" type="password" icon-right="heroicon-o-lock-closed" />
 
 {{-- Large size --}}
-<x-tallui-input name="search" placeholder="Search..." size="lg" icon="o-magnifying-glass" />
+<x-tallui-input name="search" placeholder="Search..." size="lg" icon="heroicon-o-magnifying-glass" />
 ```
 
 | Prop | Type | Default | Description |

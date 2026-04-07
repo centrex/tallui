@@ -31,7 +31,7 @@ class UsersTable extends DataTable
                     ->color('info')
                     ->route('users.edit', 'id'),
                 Action::make('Delete')
-                    ->icon('o-trash')
+                    ->icon('heroicon-o-trash')
                     ->color('error')
                     ->confirm('Are you sure?')
                     ->emit('deleteUser', 'id'),

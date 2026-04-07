@@ -73,12 +73,12 @@ describe('Action fluent modifiers', function (): void {
 
     it('chains fluently', function (): void {
         $action = Action::make('Delete')
-            ->icon('o-trash')
+            ->icon('heroicon-o-trash')
             ->color('error')
             ->confirm('Are you sure?')
             ->emit('deleteUser', 'id');
 
-        expect($action->icon)->toBe('o-trash')
+        expect($action->icon)->toBe('heroicon-o-trash')
             ->and($action->color)->toBe('error')
             ->and($action->confirmMessage)->toBe('Are you sure?')
             ->and($action->emitEvent)->toBe('deleteUser');

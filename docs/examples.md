@@ -58,7 +58,7 @@ class UserForm extends Component
         <x-tallui-input
             name="name"
             label="Full Name"
-            icon="o-user"
+            icon="heroicon-o-user"
             :error="$errors->first('name')"
             wire:model="name"
             required
@@ -68,7 +68,7 @@ class UserForm extends Component
             name="email"
             label="Email Address"
             type="email"
-            icon="o-envelope"
+            icon="heroicon-o-envelope"
             :error="$errors->first('email')"
             wire:model="email"
             required
@@ -118,7 +118,7 @@ class UserForm extends Component
     </div>
 
     <div class="flex gap-3 pt-2">
-        <x-tallui-button type="submit" label="Create User" icon="o-check" spinner="save" />
+        <x-tallui-button type="submit" label="Create User" icon="heroicon-o-check" spinner="save" />
         <x-tallui-button label="Cancel" link="{{ route('users.index') }}" />
     </div>
 </form>

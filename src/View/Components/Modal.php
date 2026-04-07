@@ -24,7 +24,7 @@ class Modal extends Component
         return <<<'BLADE'
             {{--
                 Usage:
-                  <x-tallui-modal id="confirm-delete" title="Delete user?" icon="o-trash" icon-color="text-error">
+                  <x-tallui-modal id="confirm-delete" title="Delete user?" icon="heroicon-o-trash" icon-color="text-error">
                       <x-slot:trigger>
                           <button class="btn btn-error" @click="$dispatch('open-modal', 'confirm-delete')">Delete</button>
                       </x-slot:trigger>
