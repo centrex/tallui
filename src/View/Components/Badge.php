@@ -16,18 +16,18 @@ class Badge extends Component
         public string $size = '',      // xs | sm | md | lg
     ) {
         // $type is an alias for $color using DaisyUI semantic names
-        $resolved        = $type ?? $color;
+        $resolved = $type ?? $color;
         $this->colorClass = match ($resolved) {
-            'success'  => 'badge-success',
-            'error'    => 'badge-error',
-            'warning'  => 'badge-warning',
-            'info'     => 'badge-info',
-            'primary'  => 'badge-primary',
+            'success'   => 'badge-success',
+            'error'     => 'badge-error',
+            'warning'   => 'badge-warning',
+            'info'      => 'badge-info',
+            'primary'   => 'badge-primary',
             'secondary' => 'badge-secondary',
-            'accent'   => 'badge-accent',
-            'ghost'    => 'badge-ghost',
-            'outline'  => 'badge-outline',
-            default    => 'badge-neutral',
+            'accent'    => 'badge-accent',
+            'ghost'     => 'badge-ghost',
+            'outline'   => 'badge-outline',
+            default     => 'badge-neutral',
         };
     }
 
