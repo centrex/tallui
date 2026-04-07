@@ -5,148 +5,214 @@
 [![GitHub Code Style Action Status](https://img.shields.io/github/actions/workflow/status/centrex/tallui/fix-php-code-style-issues.yml?branch=main&label=code%20style&style=flat-square)](https://github.com/centrex/tallui/actions?query=workflow%3A"Fix+PHP+code+style+issues"+branch%3Amain)
 [![Total Downloads](https://img.shields.io/packagist/dt/centrex/tallui?style=flat-square)](https://packagist.org/packages/centrex/tallui)
 
-A full-featured UI component library for Laravel + Livewire + Tailwind CSS + DaisyUI. Ships server-driven **data tables**, reactive **form components**, live **chart components**, and a rich set of **UI primitives** — all powered by Alpine.js with no extra JS build step.
+Reusable Blade and Livewire UI components built on **DaisyUI + Alpine.js**. Includes layout helpers, interactive components, a full-featured DataTable with search/sort/export, and ApexCharts-powered chart components.
 
----
-
-## Stack Requirements
-
-| Dependency | Version |
-| --- | --- |
-| PHP | ^8.2 |
-| Laravel | ^11 \| ^12 \| ^13 |
-| Livewire | ^3 \| ^4 |
-| Tailwind CSS | ^3 \| ^4 |
-| DaisyUI | ^4 (with TW3) \| ^5 (with TW4) |
-| Alpine.js | included with Livewire 3+ |
-| ApexCharts | CDN auto-injected |
-
----
-
-## Quick Start
+## Installation
 
 ```bash
 composer require centrex/tallui
-php artisan tallui:install
+php artisan vendor:publish --tag="tallui-config"
 ```
 
-See [Installation →](docs/installation.md) for Tailwind 3/4 and DaisyUI 4/5 setup.
+Requires: `livewire/livewire ^3`, `blade-ui-kit/blade-heroicons` (for icons).
 
----
+## Configuration
 
-## Documentation
+```php
+// config/tallui.php
+'prefix' => 'tallui',   // component prefix; '' → <x-button />, 'tallui' → <x-tallui-button />
+```
 
-| Guide | What's inside |
-| --- | --- |
-| [Installation](docs/installation.md) | Composer, Tailwind CSS 3 & 4, DaisyUI 4 & 5, layout setup |
-| [Configuration](docs/configuration.md) | `config/tallui.php` — prefix, datatable, charts, forms, cache |
-| [Form Components](docs/forms.md) | Input, Textarea, Select, Checkbox, Radio, Toggle, DatePicker, Range, File, TextEditor, Tags |
-| [DataTable](docs/datatable.md) | Column builder, row actions, filters, sorting, searching, async search |
-| [Charts](docs/charts.md) | Line, Bar, Pie/Donut, Area — live polling, data providers, caching |
-| [Caching](docs/caching.md) | DataTable & chart result caching, tag-based invalidation |
-| [UI Components](docs/ui-components.md) | Alert, Avatar, Breadcrumb, Loading, Progress, Rating, Stat, Steps, Timeline, Error |
-| [Interactive Components](docs/ui-components.md#accordion) | Accordion, Calendar, Carousel, Drawer, Group, Image Gallery, Menu, Popover, Spotlight, Swap, Tabs, Theme Toggle |
-| [Modal](docs/modal.md) | Dialog component — open/close events, sizes, slots, Livewire integration |
-| [Toast Notifications](docs/toast.md) | `Toast` trait — success/error/warning/info with auto-dismiss |
-| [Examples](docs/examples.md) | Full form example, full dashboard example |
-| [Development & Testing](docs/development.md) | Workbench, composer scripts, Pest, PHPStan, Rector |
+Run `php artisan view:clear` after changing the prefix.
 
----
+## Blade Components
 
-## Artisan Commands
+All components pass through `$attributes`, so standard HTML attributes and DaisyUI classes merge cleanly.
+
+### Layout
+
+```blade
+{{-- Page header with optional breadcrumbs and action slot --}}
+<x-tallui-page-header title="Customers" subtitle="Manage your list" icon="o-users">
+    <x-slot:breadcrumbs>
+        <x-tallui-breadcrumb :links="[['label' => 'Home', 'href' => '/'], ['label' => 'Customers']]" />
+    </x-slot:breadcrumbs>
+    <x-slot:actions>
+        <x-tallui-button label="New" icon="o-plus" class="btn-primary" wire:click="create" />
+    </x-slot:actions>
+</x-tallui-page-header>
+
+{{-- Card with optional title, icon, actions slot, and footer slot --}}
+<x-tallui-card title="Revenue" subtitle="Last 30 days" icon="o-chart-bar" padding="normal">
+    <x-slot:actions>
+        <x-tallui-button icon="o-arrow-path" class="btn-ghost btn-sm" />
+    </x-slot:actions>
+    <p class="text-3xl font-bold">৳ 1,24,000</p>
+    <x-slot:footer>Updated just now</x-slot:footer>
+</x-tallui-card>
+```
+
+`padding` values: `none | compact | normal | loose`.
+
+### Stats
+
+```blade
+<div class="stats shadow w-full">
+    <x-tallui-stat title="Revenue" value="৳1,24,000" icon="o-banknotes"
+        change="+12%" change-type="up" desc="vs last month" />
+    <x-tallui-stat title="Overdue" value="7" icon="o-exclamation-circle"
+        icon-color="text-error" change="-2" change-type="down" />
+</div>
+```
+
+`change-type`: `up | down | neutral`.
+
+### Badges
+
+```blade
+<x-tallui-badge type="success">Active</x-tallui-badge>
+<x-tallui-badge type="warning" size="sm">Pending</x-tallui-badge>
+<x-tallui-badge color="outline">Draft</x-tallui-badge>
+```
+
+Types/colors: `success | error | warning | info | primary | secondary | accent | ghost | outline | neutral`.
+Sizes: `xs | sm | md | lg`.
+
+### Alerts
+
+```blade
+<x-tallui-alert type="warning" title="Action required" :dismissible="true">
+    Your subscription expires in 3 days.
+</x-tallui-alert>
+```
+
+Types: `info | success | warning | error`. Icon is auto-selected per type.
+
+### Buttons
+
+```blade
+{{-- Link with wire:navigate --}}
+<x-tallui-button label="Edit" icon="o-pencil" :link="route('orders.edit', $order)" class="btn-ghost btn-sm" />
+
+{{-- Loading spinner tied to wire:click --}}
+<x-tallui-button label="Save" :spinner="1" wire:click="save" class="btn-primary" />
+
+{{-- Responsive: hides label on mobile --}}
+<x-tallui-button label="Delete" icon="o-trash" :responsive="true" class="btn-error" />
+
+{{-- With tooltip --}}
+<x-tallui-button icon="o-trash" tooltip="Delete record" class="btn-ghost" />
+```
+
+### Empty state
+
+```blade
+<x-tallui-empty-state
+    title="No invoices yet"
+    description="Create your first invoice to get started."
+    icon="o-document-text"
+    size="md"
+>
+    <x-tallui-button label="Create Invoice" icon="o-plus" class="btn-primary" />
+</x-tallui-empty-state>
+```
+
+Sizes: `sm | md | lg`.
+
+### Notifications
+
+Place once in your layout. Reads `session('success' | 'error' | 'warning' | 'info' | 'message')` automatically, and listens for Livewire-dispatched events:
+
+```blade
+{{-- layout.blade.php --}}
+<x-tallui-notification position="top-right" :timeout="4000" />
+```
+
+```php
+// In any Livewire component
+$this->dispatch('notify', type: 'success', message: 'Saved!');
+$this->dispatch('notify', type: 'error',   message: 'Something went wrong.');
+```
+
+Positions: `top-right | top-left | bottom-right | bottom-left | top-center`.
+
+### Form components
+
+```blade
+<x-tallui-input wire:model="name" label="Name" />
+<x-tallui-select wire:model="status" :options="$statuses" />
+<x-tallui-textarea wire:model="description" rows="4" />
+<x-tallui-checkbox wire:model="agree" label="I agree to the terms" />
+<x-tallui-toggle wire:model="enabled" label="Active" />
+<x-tallui-date-picker wire:model="date" />
+<x-tallui-text-editor wire:model="body" />
+```
+
+### Other components
+
+`accordion`, `avatar`, `breadcrumb`, `calendar`, `carousel`, `drawer`, `group`, `image-gallery`, `loading`, `menu`, `modal`, `popover`, `progress`, `rating`, `spotlight`, `steps`, `swap`, `tab`, `tags`, `theme-toggle`, `timeline`, `toast`.
+
+## Livewire DataTable
+
+Extend `DataTable`, override `columns()` and `query()`:
+
+```php
+use Centrex\TallUi\DataTable\Column;
+use Centrex\TallUi\Livewire\DataTable;
+use Illuminate\Database\Eloquent\Builder;
+
+class CustomerTable extends DataTable
+{
+    public function columns(): array
+    {
+        return [
+            Column::make('Name', 'name')->searchable()->sortable(),
+            Column::make('Email', 'email')->searchable(),
+            Column::make('Balance', 'outstanding_balance')->sortable(),
+            Column::make('Actions')->actions(),
+        ];
+    }
+
+    public function query(): Builder
+    {
+        return Customer::query();
+    }
+}
+```
+
+```blade
+<livewire:tallui-data-table />
+```
+
+Features: URL-synced search/sort/page (`#[Url]`), per-page selector, row selection, CSV export (chunked + UTF-8 BOM), optional result caching via `$cacheTtl`.
+
+## Charts
+
+```blade
+<livewire:tallui-line-chart :series="$series" :categories="$months" title="Revenue" />
+<livewire:tallui-bar-chart  :series="$series" :categories="$months" />
+<livewire:tallui-pie-chart  :series="$values"  :labels="$labels" />
+<livewire:tallui-area-chart :series="$series" :categories="$months" />
+```
+
+Powered by ApexCharts (loaded via CDN). CDN URL is configurable in `config/tallui.php`.
+
+## Testing
 
 ```bash
-# Publish config (and optionally views)
-php artisan tallui:install
-php artisan tallui:install --views
-php artisan tallui:install --config --views --force
-
-# List all registered component tags
-php artisan tallui:list
+composer test        # full suite
+composer test:unit   # pest only
+composer test:types  # phpstan
+composer lint        # pint
 ```
-
----
-
-## Component Tags (default prefix `tallui`)
-
-### Form
-
-| Tag | Description |
-| --- | --- |
-| `<x-tallui-input />` | Text / email / number / password field |
-| `<x-tallui-textarea />` | Multi-line textarea |
-| `<x-tallui-select />` | Static or async-searchable select |
-| `<x-tallui-checkbox />` | Checkbox with label |
-| `<x-tallui-radio />` | Radio button |
-| `<x-tallui-toggle />` | Toggle switch |
-| `<x-tallui-range />` | Range slider |
-| `<x-tallui-file />` | File / multi-file upload |
-| `<x-tallui-date-picker />` | Date / datetime-local picker |
-| `<x-tallui-text-editor />` | Rich text editor (contenteditable) |
-| `<x-tallui-tags />` | Tag input with add/remove |
-| `<x-tallui-form-group />` | Label + helper/error wrapper |
-| `<x-tallui-error />` | Inline validation error |
-
-### Display
-
-| Tag | Description |
-| --- | --- |
-| `<x-tallui-alert />` | Dismissible info/success/warning/error banner |
-| `<x-tallui-avatar />` | Image, initials, or placeholder avatar |
-| `<x-tallui-badge />` | Status badge |
-| `<x-tallui-breadcrumb />` | Breadcrumb trail |
-| `<x-tallui-loading />` | Spinner / dots / ring / bars indicator |
-| `<x-tallui-progress />` | Progress bar |
-| `<x-tallui-rating />` | Star rating input or display |
-| `<x-tallui-stat />` | KPI stat block |
-| `<x-tallui-steps />` | Multi-step progress indicator |
-| `<x-tallui-timeline />` | Vertical event timeline |
-
-### Interactive / Layout
-
-| Tag | Description |
-| --- | --- |
-| `<x-tallui-accordion />` | Collapsible panel |
-| `<x-tallui-button />` | Button with icon and loading state |
-| `<x-tallui-calendar />` | Month calendar with events |
-| `<x-tallui-carousel />` | Image slider with autoplay |
-| `<x-tallui-drawer />` | Slide-in sidebar |
-| `<x-tallui-group />` | DaisyUI join wrapper |
-| `<x-tallui-image-gallery />` | Image grid with lightbox |
-| `<x-tallui-menu />` | Menu with nested children |
-| `<x-tallui-modal />` | Dialog with open/close events |
-| `<x-tallui-popover />` | Hover/click tooltip |
-| `<x-tallui-spotlight />` | ⌘K command palette |
-| `<x-tallui-swap />` | Toggle between two states |
-| `<x-tallui-tab />` | Tabbed panels |
-| `<x-tallui-theme-toggle />` | Light/dark theme switcher |
-| `<x-tallui-toast />` | Toast notification container |
-
-### Livewire
-
-| Tag | Description |
-| --- | --- |
-| `<livewire:tallui-data-table />` | Server-driven sortable/filterable table |
-| `<livewire:tallui-line-chart />` | ApexCharts line chart |
-| `<livewire:tallui-bar-chart />` | ApexCharts bar chart |
-| `<livewire:tallui-pie-chart />` | ApexCharts pie / donut chart |
-| `<livewire:tallui-area-chart />` | ApexCharts area chart |
-
-> The prefix is configurable. Set `'prefix' => ''` in `config/tallui.php` for shorter tags like `<x-input />`.
-
----
 
 ## Changelog
 
-Please see [CHANGELOG](CHANGELOG.md) for recent changes.
-
-## Contributing
-
-Please see [CONTRIBUTING](CONTRIBUTING.md) for details.
+Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed recently.
 
 ## Credits
 
-- [rochi88](https://github.com/centrex)
+- [centrex](https://github.com/centrex)
 - [All Contributors](../../contributors)
 
 ## License
