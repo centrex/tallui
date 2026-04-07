@@ -56,7 +56,7 @@ class DataTable extends Component
      * Below this breakpoint rows are rendered as stacked cards.
      * Set to '' to disable the card stack (table-only).
      */
-    public string $mobileBreakpoint = 'md';
+    public string $mobileBreakpoint = 'lg';
 
     // ── Column definitions (serialization-safe) ───────────────────────────
 
