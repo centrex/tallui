@@ -93,6 +93,12 @@ class TallUiServiceProvider extends ServiceProvider
         Blade::component("{$prefix}-file", View\Components\Form\File::class);
         Blade::component("{$prefix}-range", View\Components\Form\Range::class);
         Blade::component("{$prefix}-text-editor", View\Components\Form\TextEditor::class);
+
+        // New utility components
+        Blade::component("{$prefix}-card", View\Components\Card::class);
+        Blade::component("{$prefix}-page-header", View\Components\PageHeader::class);
+        Blade::component("{$prefix}-empty-state", View\Components\EmptyState::class);
+        Blade::component("{$prefix}-notification", View\Components\Notification::class);
     }
 
     public function registerLivewireComponents(): void
