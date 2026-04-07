@@ -110,7 +110,7 @@ Types: `info | success | warning | error`. Icon is auto-selected per type.
 <x-tallui-empty-state
     title="No invoices yet"
     description="Create your first invoice to get started."
-    icon="o-document-text"
+    icon="heroicon-o-document-text"
     size="md"
 >
     <x-tallui-button label="Create Invoice" icon="o-plus" class="btn-primary" />
