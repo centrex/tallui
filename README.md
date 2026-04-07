@@ -38,7 +38,7 @@ All components pass through `$attributes`, so standard HTML attributes and Daisy
         <x-tallui-breadcrumb :links="[['label' => 'Home', 'href' => '/'], ['label' => 'Customers']]" />
     </x-slot:breadcrumbs>
     <x-slot:actions>
-        <x-tallui-button label="New" icon="o-plus" class="btn-primary" wire:click="create" />
+        <x-tallui-button label="New" icon="heroicon-o-plus" class="btn-primary" wire:click="create" />
     </x-slot:actions>
 </x-tallui-page-header>
 
@@ -113,7 +113,7 @@ Types: `info | success | warning | error`. Icon is auto-selected per type.
     icon="heroicon-o-document-text"
     size="md"
 >
-    <x-tallui-button label="Create Invoice" icon="o-plus" class="btn-primary" />
+    <x-tallui-button label="Create Invoice" icon="heroicon-o-plus" class="btn-primary" />
 </x-tallui-empty-state>
 ```
 
@@ -169,7 +169,7 @@ class CustomerTable extends DataTable
             Column::make('Name', 'name')->searchable()->sortable(),
             Column::make('Email', 'email')->searchable(),
             Column::make('Balance', 'outstanding_balance')->sortable(),
-            Column::make('Actions')->actions(),
+            Column::make('Actions')->actions([...]),
         ];
     }
 
@@ -185,6 +185,41 @@ class CustomerTable extends DataTable
 ```
 
 Features: URL-synced search/sort/page (`#[Url]`), per-page selector, row selection, CSV export (chunked + UTF-8 BOM), optional result caching via `$cacheTtl`.
+
+### Responsive DataTable
+
+By default the DataTable automatically switches between a **desktop table** and a **mobile card stack** at the `md` breakpoint (768 px). Each card shows the primary field as the title, remaining fields as label-value pairs, and action buttons as icon-only buttons on the right.
+
+**Change the breakpoint** by overriding `$mobileBreakpoint` in your component:
+
+```php
+class CustomerTable extends DataTable
+{
+    public string $mobileBreakpoint = 'lg';   // cards below 1024 px
+    // public string $mobileBreakpoint = '';  // table-only, no card stack
+}
+```
+
+**Hide individual columns** in the desktop table at smaller screen widths while they still appear in the mobile card stack:
+
+```php
+Column::make('Name', 'name')->searchable()->sortable(),            // always visible
+Column::make('Email', 'email')->hideOnMobile(),                    // hidden below md (768 px)
+Column::make('Phone', 'phone')->visibleFrom('lg'),                 // hidden below lg (1024 px)
+Column::make('Tax ID', 'tax_id')->visibleFrom('xl'),               // hidden below xl (1280 px)
+Column::make('Status', 'status')->badge('neutral', ['active' => 'success']),
+Column::make('Actions')->actions([...]),
+```
+
+| Method | Tailwind classes added to `<th>`/`<td>` |
+|---|---|
+| `->hideOnMobile()` | `hidden md:table-cell` |
+| `->visibleFrom('sm')` | `hidden sm:table-cell` |
+| `->visibleFrom('lg')` | `hidden lg:table-cell` |
+| `->visibleFrom('xl')` | `hidden xl:table-cell` |
+| `->visibleFrom('2xl')` | `hidden 2xl:table-cell` |
+
+> **Note:** `visibleFrom` columns are always rendered in the mobile card stack regardless of the breakpoint.
 
 ## Charts
 

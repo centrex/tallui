@@ -209,6 +209,17 @@
     {{-- ══════════════════════════════════════════════════════════
          TABLE
     ══════════════════════════════════════════════════════════ --}}
+    @php
+        $bp = $mobileBreakpoint ?: '';
+        $tableClass = $bp ? "hidden {$bp}:block" : 'block';
+        $cardsClass  = $bp ? "{$bp}:hidden" : 'hidden';
+        // Columns that carry data (not actions), for the mobile card stack
+        $dataColumns    = array_filter($columns, fn($c) => !$c['isActions'] && $c['key']);
+        $actionColumns  = array_filter($columns, fn($c) => $c['isActions']);
+        $primaryColumn  = !empty($dataColumns) ? array_values($dataColumns)[0] : null;
+        $secondaryColumns = $primaryColumn ? array_slice(array_values($dataColumns), 1) : [];
+    @endphp
+
     <div class="relative rounded-2xl border border-base-200 overflow-hidden shadow-sm bg-base-100">
 
         {{-- Loading overlay --}}
@@ -220,7 +231,140 @@
             </div>
         </div>
 
-        <div class="overflow-x-auto">
+        {{-- ── Mobile card stack ─────────────────────────────────────────── --}}
+        @if($bp)
+        <div class="{{ $cardsClass }} divide-y divide-base-200">
+            @forelse($rows as $row)
+                @php $rowId = (string) data_get($row, $primaryKey) @endphp
+                <div @class([
+                        'flex items-start gap-3 px-4 py-3',
+                        'bg-primary/5' => in_array($rowId, $selectedRows),
+                    ])>
+                    {{-- Checkbox --}}
+                    <div class="pt-0.5 shrink-0">
+                        <input
+                            type="checkbox"
+                            class="checkbox checkbox-sm checkbox-primary rounded"
+                            wire:click="toggleRow('{{ $rowId }}')"
+                            @if(in_array($rowId, $selectedRows)) checked @endif
+                        />
+                    </div>
+
+                    {{-- Card body --}}
+                    <div class="flex-1 min-w-0">
+                        {{-- Primary field --}}
+                        @if($primaryColumn)
+                            <div class="font-semibold text-sm text-base-content truncate">
+                                @if($primaryColumn['isBadge'])
+                                    @php
+                                        $cv = data_get($row, $primaryColumn['key']);
+                                        $bc = $primaryColumn['badgeColors'][(string)$cv] ?? ($primaryColumn['badgeColor'] ?? 'neutral');
+                                    @endphp
+                                    <span class="badge badge-sm badge-{{ $bc }}">{{ $cv }}</span>
+                                @elseif($primaryColumn['isRaw'])
+                                    {!! data_get($row, $primaryColumn['key']) !!}
+                                @elseif($primaryColumn['isHtml'])
+                                    {!! $this->renderHtmlColumn($primaryColumn, $row) !!}
+                                @else
+                                    {{ data_get($row, $primaryColumn['key']) }}
+                                @endif
+                            </div>
+                        @endif
+
+                        {{-- Secondary fields --}}
+                        @if(!empty($secondaryColumns))
+                            <dl class="mt-1 grid grid-cols-2 gap-x-4 gap-y-0.5">
+                                @foreach($secondaryColumns as $col)
+                                    <div class="flex gap-1 items-baseline min-w-0">
+                                        <dt class="text-xs text-base-content/40 shrink-0">{{ $col['label'] }}:</dt>
+                                        <dd class="text-xs text-base-content/70 truncate">
+                                            @if($col['isBadge'])
+                                                @php
+                                                    $cv = data_get($row, $col['key']);
+                                                    $bc = $col['badgeColors'][(string)$cv] ?? ($col['badgeColor'] ?? 'neutral');
+                                                @endphp
+                                                <span class="badge badge-xs badge-{{ $bc }}">{{ $cv }}</span>
+                                            @elseif($col['isRaw'])
+                                                {!! data_get($row, $col['key']) !!}
+                                            @elseif($col['isHtml'])
+                                                {!! $this->renderHtmlColumn($col, $row) !!}
+                                            @else
+                                                {{ data_get($row, $col['key']) ?? '—' }}
+                                            @endif
+                                        </dd>
+                                    </div>
+                                @endforeach
+                            </dl>
+                        @endif
+                    </div>
+
+                    {{-- Actions --}}
+                    @foreach($actionColumns as $actionCol)
+                        <div class="flex items-center gap-1 shrink-0">
+                            @foreach($actionCol['actions'] as $action)
+                                @if($action['route'])
+                                    <a href="{{ route($action['route'], [$action['routeKey'] => data_get($row, $action['routeKey'])]) }}"
+                                        @class([
+                                            'inline-flex items-center gap-1 p-1.5 rounded-lg text-xs font-medium border transition-all duration-150',
+                                            "bg-{$action['color']}/10 text-{$action['color']} border-{$action['color']}/20 hover:bg-{$action['color']}/20",
+                                        ])
+                                        @if($action['confirmMessage'])
+                                            onclick="return confirm('{{ addslashes($action['confirmMessage']) }}')"
+                                        @endif
+                                        title="{{ $action['label'] }}">
+                                        @if($action['icon'])
+                                            <x-tallui-icon :name="$action['icon']" class="w-4 h-4" />
+                                        @else
+                                            {{ $action['label'] }}
+                                        @endif
+                                    </a>
+                                @elseif($action['emitEvent'])
+                                    <button
+                                        wire:click="$dispatch('{{ $action['emitEvent'] }}', { id: {{ data_get($row, $action['emitKey']) }} })"
+                                        @class([
+                                            'inline-flex items-center gap-1 p-1.5 rounded-lg text-xs font-medium border transition-all duration-150',
+                                            "bg-{$action['color']}/10 text-{$action['color']} border-{$action['color']}/20 hover:bg-{$action['color']}/20",
+                                        ])
+                                        @if($action['confirmMessage'])
+                                            wire:confirm="{{ $action['confirmMessage'] }}"
+                                        @endif
+                                        title="{{ $action['label'] }}">
+                                        @if($action['icon'])
+                                            <x-tallui-icon :name="$action['icon']" class="w-4 h-4" />
+                                        @else
+                                            {{ $action['label'] }}
+                                        @endif
+                                    </button>
+                                @endif
+                            @endforeach
+                        </div>
+                    @endforeach
+                </div>
+            @empty
+                <div class="py-16 text-center">
+                    <div class="flex flex-col items-center gap-3">
+                        <div class="w-14 h-14 rounded-2xl bg-base-200 flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-base-content/30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="font-medium text-base-content/70">No results found</p>
+                            @if($search !== '' || $this->activeFilterCount() > 0)
+                                <p class="text-sm text-base-content/40 mt-0.5">Try adjusting your search or filters</p>
+                            @endif
+                        </div>
+                        @if($search !== '' || $this->activeFilterCount() > 0)
+                            <button wire:click="clearSearch" class="text-sm text-primary hover:underline font-medium">Clear all</button>
+                        @endif
+                    </div>
+                </div>
+            @endforelse
+        </div>
+        @endif
+
+        {{-- ── Desktop table ─────────────────────────────────────────────── --}}
+        <div class="{{ $tableClass }} overflow-x-auto">
             <table class="w-full text-sm">
                 <thead>
                     <tr class="border-b border-base-200 bg-base-50">
@@ -237,7 +381,13 @@
                             />
                         </th>
                         @foreach($columns as $column)
-                            <th class="px-4 py-3 text-left font-semibold text-xs uppercase tracking-wider text-base-content/50 whitespace-nowrap first:pl-5 last:pr-5">
+                            @php
+                                $thClass = 'px-4 py-3 text-left font-semibold text-xs uppercase tracking-wider text-base-content/50 whitespace-nowrap first:pl-5 last:pr-5';
+                                if (!empty($column['visibleFrom'])) {
+                                    $thClass .= " hidden {$column['visibleFrom']}:table-cell";
+                                }
+                            @endphp
+                            <th class="{{ $thClass }}">
                                 @if($column['sortable'] && $column['key'])
                                     <button
                                         wire:click="sort('{{ $column['key'] }}')"
@@ -287,7 +437,13 @@
                                 />
                             </td>
                             @foreach($columns as $column)
-                                <td class="px-4 py-3.5 text-base-content first:pl-5 last:pr-5 whitespace-nowrap">
+                                @php
+                                    $tdClass = 'px-4 py-3.5 text-base-content first:pl-5 last:pr-5 whitespace-nowrap';
+                                    if (!empty($column['visibleFrom'])) {
+                                        $tdClass .= " hidden {$column['visibleFrom']}:table-cell";
+                                    }
+                                @endphp
+                                <td class="{{ $tdClass }}">
                                     @if($column['isActions'])
                                         <div class="flex items-center gap-1.5">
                                             @foreach($column['actions'] as $action)

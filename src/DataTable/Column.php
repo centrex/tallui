@@ -20,6 +20,13 @@ class Column
 
     public bool $exportable = true;   // include in CSV export
 
+    /**
+     * Tailwind breakpoint at which this column becomes visible in the table.
+     * e.g. 'sm', 'md', 'lg', 'xl', '2xl'. null = always visible.
+     * Generates "hidden {bp}:table-cell" on <th> and <td>.
+     */
+    public ?string $visibleFrom = null;
+
     /** Named format hint for the view (e.g. 'currency', 'datetime'). */
     public ?string $format = null;
 
@@ -142,6 +149,29 @@ class Column
     }
 
     /**
+     * Hide this column in the table until the given Tailwind breakpoint.
+     * The column will still appear in the mobile card stack.
+     *
+     * @param  string  $breakpoint  'sm' | 'md' | 'lg' | 'xl' | '2xl'
+     */
+    public function visibleFrom(string $breakpoint): static
+    {
+        $this->visibleFrom = $breakpoint;
+
+        return $this;
+    }
+
+    /**
+     * Hide this column in the table on mobile (< md).
+     * Shorthand for ->visibleFrom('md').
+     * The column still appears in the mobile card stack.
+     */
+    public function hideOnMobile(): static
+    {
+        return $this->visibleFrom('md');
+    }
+
+    /**
      * Exclude this column from CSV/Excel exports.
      * Useful for action columns or columns with HTML-only content.
      */
@@ -208,6 +238,7 @@ class Column
             'format'       => $this->format,
             'relation'     => $this->relation,
             'exportable'   => $this->exportable,
+            'visibleFrom'  => $this->visibleFrom,
             'actions'      => array_map(fn (Action $a): array => $a->toArray(), $this->actions),
         ];
     }

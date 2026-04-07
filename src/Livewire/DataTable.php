@@ -49,6 +49,15 @@ class DataTable extends Component
     /** @var array<int, string> Selected row IDs (stored as strings). */
     public array $selectedRows = [];
 
+    // ── Responsive ────────────────────────────────────────────────────────
+
+    /**
+     * Tailwind breakpoint at which the table view replaces the mobile card stack.
+     * Below this breakpoint rows are rendered as stacked cards.
+     * Set to '' to disable the card stack (table-only).
+     */
+    public string $mobileBreakpoint = 'md';
+
     // ── Column definitions (serialization-safe) ───────────────────────────
 
     /** @var array<int, array<string, mixed>> */
