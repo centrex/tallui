@@ -5,7 +5,7 @@ declare(strict_types = 1);
 namespace Centrex\TallUi;
 
 use Centrex\TallUi\Commands\{TallUiBootcampCommand, TallUiInstallCommand};
-use Centrex\TallUi\Livewire\Charts\{AreaChart, BarChart, LineChart, PieChart};
+use Centrex\TallUi\Livewire\Charts\{AreaChart, BarChart, LineChart, MixedChart, PieChart, PolarAreaChart, RadarChart, RadialBarChart, RangeAreaChart, TreemapChart};
 use Centrex\TallUi\Livewire\DataTable;
 use Illuminate\Support\{Arr, ServiceProvider};
 use Illuminate\Support\Facades\Blade;
@@ -13,9 +13,9 @@ use Livewire\Livewire;
 
 class TallUiServiceProvider extends ServiceProvider
 {
-    /**
-     * Bootstrap the application services.
-     */
+    private static ?string $prefixCache = null;
+
+
     public function boot(): void
     {
         $this->loadViewsFrom(__DIR__ . '/../resources/views', 'tallui');
@@ -40,112 +40,111 @@ class TallUiServiceProvider extends ServiceProvider
 
     public function registerComponents(): void
     {
-        // Remap <x-icon> from BladeUI Icons to <x-svg> to avoid collision
         Blade::component(\BladeUI\Icons\Components\Icon::class, 'svg');
-
-        // Also expose as <x-tallui-icon name="heroicon-o-pencil" /> for use within package views
         Blade::component(\BladeUI\Icons\Components\Icon::class, 'tallui-icon');
 
-        /** @var string $prefix */
-        $prefix = config('tallui.prefix', 'tallui');
+        $prefix = self::$prefixCache ??= config('tallui.prefix', 'tallui');
 
-        Blade::component("{$prefix}-button", View\Components\Button::class);
-        Blade::component("{$prefix}-input", View\Components\Form\Input::class);
-        Blade::component("{$prefix}-form-group", View\Components\Form\FormGroup::class);
-        Blade::component("{$prefix}-textarea", View\Components\Form\Textarea::class);
-        Blade::component("{$prefix}-select", View\Components\Form\Select::class);
-        Blade::component("{$prefix}-checkbox", View\Components\Form\Checkbox::class);
-        Blade::component("{$prefix}-radio", View\Components\Form\Radio::class);
-        Blade::component("{$prefix}-toggle", View\Components\Form\Toggle::class);
-        Blade::component("{$prefix}-date-picker", View\Components\Form\DatePicker::class);
-        Blade::component("{$prefix}-badge", View\Components\Badge::class);
-        Blade::component("{$prefix}-toast", View\Components\ToastContainer::class);
+        $components = [
+            'button'        => View\Components\Button::class,
+            'input'         => View\Components\Form\Input::class,
+            'form-group'    => View\Components\Form\FormGroup::class,
+            'textarea'      => View\Components\Form\Textarea::class,
+            'select'        => View\Components\Form\Select::class,
+            'checkbox'      => View\Components\Form\Checkbox::class,
+            'radio'         => View\Components\Form\Radio::class,
+            'toggle'        => View\Components\Form\Toggle::class,
+            'date-picker'   => View\Components\Form\DatePicker::class,
+            'badge'         => View\Components\Badge::class,
+            'toast'         => View\Components\ToastContainer::class,
+            'alert'         => View\Components\Alert::class,
+            'avatar'        => View\Components\Avatar::class,
+            'breadcrumb'    => View\Components\Breadcrumb::class,
+            'loading'       => View\Components\Loading::class,
+            'progress'      => View\Components\Progress::class,
+            'rating'        => View\Components\Rating::class,
+            'stat'          => View\Components\Stat::class,
+            'steps'         => View\Components\Steps::class,
+            'timeline'      => View\Components\Timeline::class,
+            'error'         => View\Components\ErrorMessage::class,
+            'modal'         => View\Components\Modal::class,
+            'accordion'     => View\Components\Accordion::class,
+            'carousel'      => View\Components\Carousel::class,
+            'drawer'        => View\Components\Drawer::class,
+            'group'         => View\Components\Group::class,
+            'image-gallery' => View\Components\ImageGallery::class,
+            'menu'          => View\Components\Menu::class,
+            'popover'       => View\Components\Popover::class,
+            'spotlight'     => View\Components\Spotlight::class,
+            'swap'          => View\Components\Swap::class,
+            'tab'           => View\Components\Tab::class,
+            'tags'          => View\Components\Tags::class,
+            'theme-toggle'  => View\Components\ThemeToggle::class,
+            'calendar'      => View\Components\Calendar::class,
+            'file'          => View\Components\Form\File::class,
+            'range'         => View\Components\Form\Range::class,
+            'text-editor'   => View\Components\Form\TextEditor::class,
+            'card'          => View\Components\Card::class,
+            'page-header'   => View\Components\PageHeader::class,
+            'empty-state'   => View\Components\EmptyState::class,
+            'notification'  => View\Components\Notification::class,
+            // New components
+            'sidebar'       => View\Components\Sidebar::class,
+            'dialog'        => View\Components\Dialog::class,
+            'collapse'      => View\Components\Collapse::class,
+            'header'        => View\Components\Header::class,
+            'image-library' => View\Components\ImageLibrary::class,
+            'choices'       => View\Components\Form\Choices::class,
+            'file-upload'   => View\Components\Form\FileUpload::class,
+            'pin'           => View\Components\Form\Pin::class,
+        ];
 
-        // Display & feedback
-        Blade::component("{$prefix}-alert", View\Components\Alert::class);
-        Blade::component("{$prefix}-avatar", View\Components\Avatar::class);
-        Blade::component("{$prefix}-breadcrumb", View\Components\Breadcrumb::class);
-        Blade::component("{$prefix}-loading", View\Components\Loading::class);
-        Blade::component("{$prefix}-progress", View\Components\Progress::class);
-        Blade::component("{$prefix}-rating", View\Components\Rating::class);
-        Blade::component("{$prefix}-stat", View\Components\Stat::class);
-        Blade::component("{$prefix}-steps", View\Components\Steps::class);
-        Blade::component("{$prefix}-timeline", View\Components\Timeline::class);
-        Blade::component("{$prefix}-error", View\Components\ErrorMessage::class);
-
-        // Interactive / layout
-        Blade::component("{$prefix}-modal", View\Components\Modal::class);
-        Blade::component("{$prefix}-accordion", View\Components\Accordion::class);
-        Blade::component("{$prefix}-carousel", View\Components\Carousel::class);
-        Blade::component("{$prefix}-drawer", View\Components\Drawer::class);
-        Blade::component("{$prefix}-group", View\Components\Group::class);
-        Blade::component("{$prefix}-image-gallery", View\Components\ImageGallery::class);
-        Blade::component("{$prefix}-menu", View\Components\Menu::class);
-        Blade::component("{$prefix}-popover", View\Components\Popover::class);
-        Blade::component("{$prefix}-spotlight", View\Components\Spotlight::class);
-        Blade::component("{$prefix}-swap", View\Components\Swap::class);
-        Blade::component("{$prefix}-tab", View\Components\Tab::class);
-        Blade::component("{$prefix}-tags", View\Components\Tags::class);
-        Blade::component("{$prefix}-theme-toggle", View\Components\ThemeToggle::class);
-        Blade::component("{$prefix}-calendar", View\Components\Calendar::class);
-
-        // Form
-        Blade::component("{$prefix}-file", View\Components\Form\File::class);
-        Blade::component("{$prefix}-range", View\Components\Form\Range::class);
-        Blade::component("{$prefix}-text-editor", View\Components\Form\TextEditor::class);
-
-        // New utility components
-        Blade::component("{$prefix}-card", View\Components\Card::class);
-        Blade::component("{$prefix}-page-header", View\Components\PageHeader::class);
-        Blade::component("{$prefix}-empty-state", View\Components\EmptyState::class);
-        Blade::component("{$prefix}-notification", View\Components\Notification::class);
+        foreach ($components as $name => $class) {
+            Blade::component("{$prefix}-{$name}", $class);
+        }
     }
 
     public function registerLivewireComponents(): void
     {
-        /** @var string $prefix */
-        $prefix = config('tallui.prefix', 'tallui');
+        $prefix = self::$prefixCache ??= config('tallui.prefix', 'tallui');
 
         Livewire::component("{$prefix}-data-table", DataTable::class);
         Livewire::component("{$prefix}-line-chart", LineChart::class);
         Livewire::component("{$prefix}-bar-chart", BarChart::class);
         Livewire::component("{$prefix}-pie-chart", PieChart::class);
         Livewire::component("{$prefix}-area-chart", AreaChart::class);
+        Livewire::component("{$prefix}-mixed-chart", MixedChart::class);
+        Livewire::component("{$prefix}-treemap-chart", TreemapChart::class);
+        Livewire::component("{$prefix}-radial-bar-chart", RadialBarChart::class);
+        Livewire::component("{$prefix}-radar-chart", RadarChart::class);
+        Livewire::component("{$prefix}-polar-area-chart", PolarAreaChart::class);
+        Livewire::component("{$prefix}-range-area-chart", RangeAreaChart::class);
     }
 
     public function registerBladeDirectives(): void
     {
         $this->registerScopeDirective();
+        $this->registerPushOnceDirective();
+        $this->registerMemoizeDirective();
+        $this->registerLazyDirective();
+        $this->registerStyleOnceDirective();
+        $this->registerScriptOnceDirective();
     }
 
     public function registerScopeDirective(): void
     {
-        /**
-         * All credits from this blade directive goes to Konrad Kalemba.
-         * Just copied and modified for my very specific use case.
-         *
-         * https://github.com/konradkalemba/blade-components-scoped-slots
-         */
-        Blade::directive('scope', function ($expression): string {
-            // Split the expression by `top-level` commas (not in parentheses)
-            $directiveArguments = preg_split("/,(?![^\(\(]*[\)\)])/", $expression);
+        Blade::directive('scope', function (string $expression): string {
+            $directiveArguments = preg_split("/,(?![^\(\(]*[\)])]/", $expression);
             $directiveArguments = array_map('trim', $directiveArguments);
 
             [$name, $functionArguments] = $directiveArguments;
 
-            // Build function "uses" to inject extra external variables
             $uses = Arr::except(array_flip($directiveArguments), [$name, $functionArguments]);
             $uses = array_flip($uses);
             $uses[] = '$__env';
             $uses[] = '$__bladeCompiler';
             $uses = implode(',', $uses);
 
-            /**
-             *  Slot names can't contain dots, e.g. `user.city`.
-             *  So we convert `user.city` to `user___city`
-             *
-             *  Later, on component it will be replaced back.
-             */
             $name = str_replace('.', '___', $name);
 
             return "<?php \$__bladeCompiler = \$__bladeCompiler ?? null; \$loop = null; \$__env->slot({$name}, function({$functionArguments}) use ({$uses}) { \$loop = (object) \$__env->getLoopStack()[0] ?>";
@@ -155,8 +154,143 @@ class TallUiServiceProvider extends ServiceProvider
     }
 
     /**
-     * Register the application services.
+     * @pushonce('stack-name', 'unique-key')
+     *   ...content pushed only the first time this key is encountered...
+     * @endpushonce
+     *
+     * Prevents duplicate JS/CSS assets when a component is used multiple times on a page.
+     * More explicit than @once because it lets you target a named stack AND deduplicate by key.
      */
+    public function registerPushOnceDirective(): void
+    {
+        Blade::directive('pushonce', function (string $expression): string {
+            // expression: 'stack-name', 'key'  OR just 'stack-name' (key defaults to stack-name)
+            $parts = array_map('trim', explode(',', $expression, 2));
+            $stack = trim($parts[0], "'\"");
+            $key   = isset($parts[1]) ? trim($parts[1], "'\"") : $stack;
+
+            return <<<PHP
+                <?php if (!isset(\$__tallUiPushedOnce['{$key}'])) {
+                    \$__tallUiPushedOnce['{$key}'] = true;
+                    \$__env->startPush('{$stack}'); ?>
+                PHP;
+        });
+
+        Blade::directive('endpushonce', fn (): string => '<?php $__env->stopPush(); } ?>');
+    }
+
+    /**
+     * @memoize('cache-key')
+     *   ...expensive Blade output rendered only once per request, then replayed from memory...
+     * @endmemoize
+     *
+     * Caches the rendered HTML string in a static array for the duration of the PHP request.
+     * Ideal for repeated sub-views (e.g. nav items, icon sets) rendered inside loops.
+     */
+    public function registerMemoizeDirective(): void
+    {
+        Blade::directive('memoize', function (string $expression): string {
+            $key = trim($expression, "'\"");
+
+            return <<<PHP
+                <?php
+                if (!isset(\$__tallUiMemoCache['{$key}'])) {
+                    ob_start();
+                ?>
+                PHP;
+        });
+
+        Blade::directive('endmemoize', function (string $expression): string {
+            $key = trim($expression, "'\"");
+
+            return <<<PHP
+                <?php
+                    \$__tallUiMemoCache['{$key}'] = ob_get_clean();
+                }
+                echo \$__tallUiMemoCache['{$key}'];
+                ?>
+                PHP;
+        });
+    }
+
+    /**
+     * @lazy(threshold='200px', rootMargin='0px')
+     *   ...content that is only rendered when near the viewport (IntersectionObserver)...
+     * @endlazy
+     *
+     * Wraps the content in an Alpine.js x-intersect wrapper so the DOM is created upfront
+     * but Alpine components inside initialise only when visible — reducing initial JS work.
+     *
+     * Requires Alpine x-intersect plugin (already bundled with Livewire 3 / Alpine 3.x).
+     */
+    public function registerLazyDirective(): void
+    {
+        Blade::directive('lazy', function (string $expression): string {
+            $threshold   = '0.1';
+            $rootMargin  = '200px';
+
+            if ($expression) {
+                $args = array_map('trim', explode(',', $expression, 2));
+                $threshold  = trim($args[0] ?? $threshold, "'\"");
+                $rootMargin = trim($args[1] ?? $rootMargin, "'\"");
+            }
+
+            return <<<HTML
+                <?php echo '<div x-data="{ visible: false }" x-intersect.threshold.{$threshold}="visible = true" style="min-height:1px">
+                    <template x-if="visible">'; ?>
+                HTML;
+        });
+
+        Blade::directive('endlazy', fn (): string => "<?php echo '</template></div>'; ?>");
+    }
+
+    /**
+     * @styleonce('unique-key')
+     *   <style>...</style>
+     * @endstyleonce
+     *
+     * Injects an inline <style> block into the `styles` stack exactly once,
+     * regardless of how many times the surrounding component is rendered.
+     * Equivalent to @pushonce('styles', key) but reads more clearly in component templates.
+     */
+    public function registerStyleOnceDirective(): void
+    {
+        Blade::directive('styleonce', function (string $expression): string {
+            $key = trim($expression, "'\"");
+
+            return <<<PHP
+                <?php if (!isset(\$__tallUiPushedOnce['style:{$key}'])) {
+                    \$__tallUiPushedOnce['style:{$key}'] = true;
+                    \$__env->startPush('styles'); ?>
+                PHP;
+        });
+
+        Blade::directive('endstyleonce', fn (): string => '<?php $__env->stopPush(); } ?>');
+    }
+
+    /**
+     * @scriptonce('unique-key')
+     *   <script>...</script>
+     * @endscriptonce
+     *
+     * Injects an inline <script> block into the `scripts` stack exactly once.
+     * Prevents duplicate inline initialisation scripts when a component is looped.
+     */
+    public function registerScriptOnceDirective(): void
+    {
+        Blade::directive('scriptonce', function (string $expression): string {
+            $key = trim($expression, "'\"");
+
+            return <<<PHP
+                <?php if (!isset(\$__tallUiPushedOnce['script:{$key}'])) {
+                    \$__tallUiPushedOnce['script:{$key}'] = true;
+                    \$__env->startPush('scripts'); ?>
+                PHP;
+        });
+
+        Blade::directive('endscriptonce', fn (): string => '<?php $__env->stopPush(); } ?>');
+    }
+
     public function register(): void
     {
         $this->mergeConfigFrom(__DIR__ . '/../config/config.php', 'tallui');

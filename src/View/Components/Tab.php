@@ -16,7 +16,7 @@ class Tab extends Component
         public string $variant = 'bordered', // bordered | lifted | boxed
         public string $size = '',         // xs | sm | lg
     ) {
-        if ($this->active === '' && count($tabs) > 0) {
+        if ($this->active === '' && $tabs !== []) {
             $this->active = $tabs[0]['id'];
         }
     }

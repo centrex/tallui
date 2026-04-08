@@ -41,7 +41,7 @@ class PieChart extends BaseChart
             ],
             'series' => $data['series'] ?? [],
             'labels' => $data['categories'] ?? [],
-            'title'  => $this->title ? ['text' => $this->title, 'align' => 'left'] : [],
+            'title'  => $this->title !== '' && $this->title !== '0' ? ['text' => $this->title, 'align' => 'left'] : [],
         ]);
     }
 }

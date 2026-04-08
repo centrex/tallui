@@ -166,7 +166,7 @@ class DataTable extends Component
     {
         $rows = $this->getRows();
         $pageIds = $rows->map(fn ($r): string => (string) data_get($r, $this->primaryKey))->all();
-        $allSelected = empty(array_diff($pageIds, $this->selectedRows));
+        $allSelected = array_diff($pageIds, $this->selectedRows) === [];
 
         if ($allSelected) {
             $this->selectedRows = array_values(array_diff($this->selectedRows, $pageIds));
@@ -211,7 +211,7 @@ class DataTable extends Component
                 fn (array $col): bool => ($col['searchable'] ?? false) && $col['key'] !== null,
             );
 
-            if (count($searchableCols) > 0) {
+            if ($searchableCols !== []) {
                 $query->where(function (Builder $q) use ($searchableCols): void {
                     foreach ($searchableCols as $col) {
                         if ($col['key'] !== null) {
@@ -224,7 +224,7 @@ class DataTable extends Component
 
         $this->applyFilters($query);
 
-        if (!empty($this->selectedRows)) {
+        if ($this->selectedRows !== []) {
             $query->whereIn($this->primaryKey, $this->selectedRows);
         }
 
@@ -243,9 +243,9 @@ class DataTable extends Component
     {
         $columns = $this->getExportableColumns();
         $query = $this->buildExportQuery();
-        $label = !empty($this->selectedRows)
-            ? count($this->selectedRows) . '-rows'
-            : 'all';
+        $label = $this->selectedRows === []
+            ? 'all'
+            : count($this->selectedRows) . '-rows';
         $filename = 'export-' . $label . '-' . now()->format('Y-m-d') . '.csv';
 
         return response()->streamDownload(function () use ($columns, $query): void {
@@ -317,7 +317,7 @@ class DataTable extends Component
                 fn (array $col): bool => ($col['searchable'] ?? false) && $col['key'] !== null,
             );
 
-            if (count($searchableCols) > 0) {
+            if ($searchableCols !== []) {
                 $query->where(function (Builder $q) use ($searchableCols): void {
                     foreach ($searchableCols as $col) {
                         if ($col['key'] !== null) {

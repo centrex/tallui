@@ -21,32 +21,52 @@
                 opts = opts || {};
 
                 // --- TITLE ---
-                if (!opts.title) {
+                if (!opts.title || Array.isArray(opts.title)) {
                     opts.title = { text: '', style: {} };
                 } else {
-                    opts.title.text = opts.title.text ?? '';
+                    opts.title.text  = opts.title.text  ?? '';
                     opts.title.style = opts.title.style || {};
                     opts.title.style.fontSize = opts.title.style.fontSize || '14px';
                 }
 
                 // --- SUBTITLE ---
-                if (!opts.subtitle) {
+                if (!opts.subtitle || Array.isArray(opts.subtitle)) {
                     opts.subtitle = { text: '', style: {} };
                 } else {
-                    opts.subtitle.text = opts.subtitle.text ?? '';
+                    opts.subtitle.text  = opts.subtitle.text  ?? '';
                     opts.subtitle.style = opts.subtitle.style || {};
                 }
 
                 // --- CHART ---
-                opts.chart = opts.chart || {};
+                opts.chart      = opts.chart || {};
                 opts.chart.type = opts.chart.type || 'line';
+
+                const type = opts.chart.type;
 
                 // --- SERIES ---
                 opts.series = Array.isArray(opts.series) ? opts.series : [];
 
-                // --- XAXIS ---
-                opts.xaxis = opts.xaxis || {};
-                opts.xaxis.categories = opts.xaxis.categories || [];
+                // --- XAXIS / LABELS (type-aware) ---
+                // Polar-family charts (pie, donut, radialBar, polarArea) use `labels`, not `xaxis`.
+                const polarTypes = ['pie', 'donut', 'radialBar', 'polarArea'];
+                if (polarTypes.includes(type)) {
+                    opts.labels = Array.isArray(opts.labels) ? opts.labels : [];
+                } else if (type === 'treemap') {
+                    // Treemap encodes categories inside series[].data[].x — no xaxis needed.
+                } else if (type === 'rangeArea') {
+                    // RangeArea encodes x inside each data point — xaxis is optional.
+                    opts.xaxis = opts.xaxis || {};
+                } else {
+                    opts.xaxis            = opts.xaxis || {};
+                    opts.xaxis.categories = opts.xaxis.categories || [];
+                }
+
+                // --- MIXED: ensure every series has a `type` key ---
+                if (type === 'line' && Array.isArray(opts.series)) {
+                    opts.series = opts.series.map(s =>
+                        s && typeof s === 'object' && !s.type ? { ...s, type: 'bar' } : s
+                    );
+                }
 
                 return opts;
             },

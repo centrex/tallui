@@ -48,7 +48,7 @@ class TallUiInstallCommand extends Command
         }
 
         $this->callSilently('vendor:publish', $params);
-        $this->components->task('Publishing config', fn () => true);
+        $this->components->task('Publishing config', fn (): true => true);
     }
 
     private function publishViews(): void
@@ -60,6 +60,6 @@ class TallUiInstallCommand extends Command
         }
 
         $this->callSilently('vendor:publish', $params);
-        $this->components->task('Publishing views', fn () => true);
+        $this->components->task('Publishing views', fn (): true => true);
     }
 }

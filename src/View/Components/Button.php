@@ -13,8 +13,6 @@ class Button extends Component
 {
     use HasUuid;
 
-    public string $tooltipPosition = 'lg:tooltip-top';
-
     public function __construct(
         public ?string $id = null,
         public ?string $label = null,
@@ -33,91 +31,23 @@ class Button extends Component
         public ?string $tooltipBottom = null,
     ) {
         $this->tooltip ??= $this->tooltipLeft ?? $this->tooltipRight ?? $this->tooltipBottom;
-        $this->tooltipPosition = $this->tooltipLeft ? 'lg:tooltip-left' : ($this->tooltipRight ? 'lg:tooltip-right' : ($this->tooltipBottom ? 'lg:tooltip-bottom' : 'lg:tooltip-top'));
         $this->generateUuid($id);
-    }
-
-    public function spinnerTarget(): ?string
-    {
-        if ($this->spinner == 1) {
-            return $this->attributes->whereStartsWith('wire:click')->first();
-        }
-
-        return $this->spinner;
     }
 
     public function render(): View|Closure|string
     {
-        return <<<'BLADE'
-                @if($link)
-                    <a href="{!! $link !!}"
-                @else
-                    <button
-                @endif
+        $tooltipPosition = $this->tooltipLeft
+            ? 'lg:tooltip-left'
+            : ($this->tooltipRight ? 'lg:tooltip-right' : ($this->tooltipBottom ? 'lg:tooltip-bottom' : 'lg:tooltip-top'));
 
-                    wire:key="{{ $uuid }}"
-                    {{ $attributes->whereDoesntStartWith('class')->merge(['type' => 'button']) }}
-                    {{ $attributes->class(['btn', "!inline-flex lg:tooltip $tooltipPosition" => $tooltip]) }}
+        $spinnerTarget = null;
 
-                    @if($link && $external)
-                        target="_blank"
-                    @endif
+        if ($this->spinner !== null) {
+            $spinnerTarget = $this->spinner === '1'
+                ? $this->attributes->whereStartsWith('wire:click')->first()
+                : $this->spinner;
+        }
 
-                    @if($link && !$external && !$noWireNavigate)
-                        wire:navigate
-                    @endif
-
-                    @if($tooltip)
-                        data-tip="{{ $tooltip }}"
-                    @endif
-
-                    @if($spinner)
-                        wire:target="{{ $spinnerTarget() }}"
-                        wire:loading.attr="disabled"
-                    @endif
-                >
-
-                    <!-- SPINNER LEFT -->
-                    @if($spinner && !$iconRight)
-                        <span wire:loading wire:target="{{ $spinnerTarget() }}" class="loading loading-spinner w-5 h-5"></span>
-                    @endif
-
-                    <!-- ICON -->
-                    @if($icon)
-                        <span class="block" @if($spinner) wire:loading.class="hidden" wire:target="{{ $spinnerTarget() }}" @endif>
-                            <x-tallui-icon :name="$icon" />
-                        </span>
-                    @endif
-
-                    <!-- LABEL / SLOT -->
-                    @if($label)
-                        <span @class(["hidden lg:block" => $responsive ])>
-                            {{ $label }}
-                        </span>
-                        @if(strlen($badge ?? '') > 0)
-                            <span class="badge badge-sm {{ $badgeClasses }}">{{ $badge }}</span>
-                        @endif
-                    @else
-                        {{ $slot }}
-                    @endif
-
-                    <!-- ICON RIGHT -->
-                    @if($iconRight)
-                        <span class="block" @if($spinner) wire:loading.class="hidden" wire:target="{{ $spinnerTarget() }}" @endif>
-                            <x-tallui-icon :name="$iconRight" />
-                        </span>
-                    @endif
-
-                    <!-- SPINNER RIGHT -->
-                    @if($spinner && $iconRight)
-                        <span wire:loading wire:target="{{ $spinnerTarget() }}" class="loading loading-spinner w-5 h-5"></span>
-                    @endif
-
-                @if(!$link)
-                    </button>
-                @else
-                    </a>
-                @endif
-            BLADE;
+        return view('tallui::components.button')->with(compact('tooltipPosition', 'spinnerTarget'));
     }
 }

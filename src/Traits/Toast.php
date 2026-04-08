@@ -4,10 +4,12 @@ declare(strict_types = 1);
 
 namespace Centrex\TallUi\Traits;
 
-use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\{Blade, Cache};
 
 trait Toast
 {
+    private static array $iconCache = [];
+
     public function toast(
         string $type,
         string $title,
@@ -23,7 +25,7 @@ trait Toast
             'title'       => $title,
             'description' => $description,
             'position'    => $position,
-            'icon'        => Blade::render("<x-tallui-icon class='w-7 h-7' name='" . $icon . "' />"),
+            'icon'        => $this->renderIconCached($icon),
             'css'         => $css,
             'timeout'     => $timeout,
         ];
@@ -38,6 +40,29 @@ trait Toast
         }
 
         return null;
+    }
+
+    private function renderIconCached(string $icon): string
+    {
+        if (isset(self::$iconCache[$icon])) {
+            return self::$iconCache[$icon];
+        }
+
+        $cacheEnabled = (bool) config('tallui.cache.store', false);
+
+        if ($cacheEnabled) {
+            $key = 'tallui:icon:' . $icon;
+            self::$iconCache[$icon] = Cache::store(config('tallui.cache.store'))
+                ->rememberForever($key, fn (): string => Blade::render(
+                    "<x-tallui-icon class='w-7 h-7' name='" . $icon . "' />",
+                ));
+        } elseif (!isset(self::$iconCache[$icon])) {
+            self::$iconCache[$icon] = Blade::render(
+                "<x-tallui-icon class='w-7 h-7' name='" . $icon . "' />",
+            );
+        }
+
+        return self::$iconCache[$icon];
     }
 
     public function success(
