@@ -53,9 +53,9 @@ class MixedChart extends BaseChart
                 'toolbar'    => ['show' => true],
                 'animations' => ['enabled' => true],
             ],
-            'series' => $data['series'] ?? [],
-            'xaxis'  => ['categories' => $data['categories'] ?? []],
-            'title'  => $this->title !== '' ? ['text' => $this->title, 'align' => 'left', 'style' => ['fontSize' => '14px']] : [],
+            'series'   => $data['series'] ?? [],
+            'xaxis'    => ['categories' => $data['categories'] ?? []],
+            'title'    => $this->title !== '' ? ['text' => $this->title, 'align' => 'left', 'style' => ['fontSize' => '14px']] : [],
             'subtitle' => $this->subtitle !== '' ? ['text' => $this->subtitle, 'align' => 'left', 'style' => []] : [],
         ]);
 

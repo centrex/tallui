@@ -31,8 +31,8 @@ class Pin extends Component
     public function render(): View|Closure|string
     {
         $inputSizeClass = match ($this->size) {
-            'sm' => 'input-sm w-8 h-8 text-sm',
-            'lg' => 'input-lg w-16 h-16 text-xl',
+            'sm'    => 'input-sm w-8 h-8 text-sm',
+            'lg'    => 'input-lg w-16 h-16 text-xl',
             default => 'input-md w-12 h-12 text-lg',
         };
 

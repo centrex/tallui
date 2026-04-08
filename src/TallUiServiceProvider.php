@@ -15,7 +15,6 @@ class TallUiServiceProvider extends ServiceProvider
 {
     private static ?string $prefixCache = null;
 
-
     public function boot(): void
     {
         $this->loadViewsFrom(__DIR__ . '/../resources/views', 'tallui');
@@ -154,8 +153,9 @@ class TallUiServiceProvider extends ServiceProvider
     }
 
     /**
-     * @pushonce('stack-name', 'unique-key')
+     * @pushonce(stack-name, 'unique-key)
      *   ...content pushed only the first time this key is encountered...
+     *
      * @endpushonce
      *
      * Prevents duplicate JS/CSS assets when a component is used multiple times on a page.
@@ -167,7 +167,7 @@ class TallUiServiceProvider extends ServiceProvider
             // expression: 'stack-name', 'key'  OR just 'stack-name' (key defaults to stack-name)
             $parts = array_map('trim', explode(',', $expression, 2));
             $stack = trim($parts[0], "'\"");
-            $key   = isset($parts[1]) ? trim($parts[1], "'\"") : $stack;
+            $key = isset($parts[1]) ? trim($parts[1], "'\"") : $stack;
 
             return <<<PHP
                 <?php if (!isset(\$__tallUiPushedOnce['{$key}'])) {
@@ -180,8 +180,9 @@ class TallUiServiceProvider extends ServiceProvider
     }
 
     /**
-     * @memoize('cache-key')
+     * @memoize(cache-key)
      *   ...expensive Blade output rendered only once per request, then replayed from memory...
+     *
      * @endmemoize
      *
      * Caches the rendered HTML string in a static array for the duration of the PHP request.
@@ -214,8 +215,9 @@ class TallUiServiceProvider extends ServiceProvider
     }
 
     /**
-     * @lazy(threshold='200px', rootMargin='0px')
+     * @lazy(threshold=200px, rootMargin=0px)
      *   ...content that is only rendered when near the viewport (IntersectionObserver)...
+     *
      * @endlazy
      *
      * Wraps the content in an Alpine.js x-intersect wrapper so the DOM is created upfront
@@ -226,12 +228,12 @@ class TallUiServiceProvider extends ServiceProvider
     public function registerLazyDirective(): void
     {
         Blade::directive('lazy', function (string $expression): string {
-            $threshold   = '0.1';
-            $rootMargin  = '200px';
+            $threshold = '0.1';
+            $rootMargin = '200px';
 
             if ($expression) {
                 $args = array_map('trim', explode(',', $expression, 2));
-                $threshold  = trim($args[0] ?? $threshold, "'\"");
+                $threshold = trim($args[0] ?? $threshold, "'\"");
                 $rootMargin = trim($args[1] ?? $rootMargin, "'\"");
             }
 
@@ -245,13 +247,14 @@ class TallUiServiceProvider extends ServiceProvider
     }
 
     /**
-     * @styleonce('unique-key')
+     * @styleonce(unique-key)
      *   <style>...</style>
+     *
      * @endstyleonce
      *
      * Injects an inline <style> block into the `styles` stack exactly once,
      * regardless of how many times the surrounding component is rendered.
-     * Equivalent to @pushonce('styles', key) but reads more clearly in component templates.
+     * Equivalent to @pushonce(styles, key) but reads more clearly in component templates.
      */
     public function registerStyleOnceDirective(): void
     {
@@ -269,8 +272,9 @@ class TallUiServiceProvider extends ServiceProvider
     }
 
     /**
-     * @scriptonce('unique-key')
+     * @scriptonce(unique-key)
      *   <script>...</script>
+     *
      * @endscriptonce
      *
      * Injects an inline <script> block into the `scripts` stack exactly once.

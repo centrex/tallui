@@ -16,6 +16,7 @@ namespace Centrex\TallUi\Livewire\Charts;
 class RadarChart extends BaseChart
 {
     public bool $polygon = true;    // polygon grid vs circular grid
+
     public int $polygonCount = 6;   // number of concentric polygon rings
 
     protected function chartType(): string
@@ -27,17 +28,17 @@ class RadarChart extends BaseChart
     protected function defaultOptions(): array
     {
         return [
-            'stroke'     => ['width' => 2],
-            'fill'       => ['opacity' => 0.2],
-            'markers'    => ['size' => 4],
-            'dataLabels' => ['enabled' => false],
-            'yaxis'      => ['show' => false],
+            'stroke'      => ['width' => 2],
+            'fill'        => ['opacity' => 0.2],
+            'markers'     => ['size' => 4],
+            'dataLabels'  => ['enabled' => false],
+            'yaxis'       => ['show' => false],
             'plotOptions' => [
                 'radar' => [
                     'polygons' => [
-                        'strokeColors'   => ['oklch(var(--bc)/0.15)'],
+                        'strokeColors'    => ['oklch(var(--bc)/0.15)'],
                         'connectorColors' => 'oklch(var(--bc)/0.15)',
-                        'fill'           => ['colors' => ['transparent']],
+                        'fill'            => ['colors' => ['transparent']],
                     ],
                 ],
             ],

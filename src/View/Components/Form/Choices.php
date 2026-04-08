@@ -30,6 +30,7 @@ class Choices extends Component
 
         // Normalize options to [{value, label}] format
         $normalized = [];
+
         foreach ($options as $k => $v) {
             if (is_array($v)) {
                 $normalized[] = $v;

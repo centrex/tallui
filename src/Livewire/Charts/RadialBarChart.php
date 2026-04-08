@@ -16,9 +16,12 @@ namespace Centrex\TallUi\Livewire\Charts;
 class RadialBarChart extends BaseChart
 {
     public string $startAngle = '-135';
-    public string $endAngle   = '135';
-    public bool $hollow       = true;   // donut-style hollow centre
-    public string $track      = '';     // custom track background colour (CSS colour or '')
+
+    public string $endAngle = '135';
+
+    public bool $hollow = true;   // donut-style hollow centre
+
+    public string $track = '';     // custom track background colour (CSS colour or '')
 
     protected function chartType(): string
     {
@@ -70,9 +73,9 @@ class RadialBarChart extends BaseChart
                 'theme'   => ['mode' => $this->theme],
                 'toolbar' => ['show' => false],
             ],
-            'series' => $data['series'] ?? [],
-            'labels' => $data['categories'] ?? [],
-            'title'  => $this->title !== '' ? ['text' => $this->title, 'align' => 'left', 'style' => ['fontSize' => '14px']] : [],
+            'series'   => $data['series'] ?? [],
+            'labels'   => $data['categories'] ?? [],
+            'title'    => $this->title !== '' ? ['text' => $this->title, 'align' => 'left', 'style' => ['fontSize' => '14px']] : [],
             'subtitle' => $this->subtitle !== '' ? ['text' => $this->subtitle, 'align' => 'left'] : [],
         ]);
     }

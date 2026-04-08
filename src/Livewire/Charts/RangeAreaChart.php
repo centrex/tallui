@@ -44,7 +44,7 @@ class RangeAreaChart extends BaseChart
             'dataLabels' => ['enabled' => false],
             'legend'     => ['show' => true, 'position' => 'top'],
             'markers'    => ['hover' => ['sizeOffset' => 4]],
-            'tooltip' => [
+            'tooltip'    => [
                 'shared' => true,
                 'y'      => [
                     'formatter' => "function(val, opts) {
@@ -70,9 +70,9 @@ class RangeAreaChart extends BaseChart
                 'toolbar'    => ['show' => true],
                 'animations' => ['enabled' => true],
             ],
-            'series' => $data['series'] ?? [],
-            'xaxis'  => ['type' => 'category', 'categories' => $data['categories'] ?? []],
-            'title'  => $this->title !== '' ? ['text' => $this->title, 'align' => 'left', 'style' => ['fontSize' => '14px']] : [],
+            'series'   => $data['series'] ?? [],
+            'xaxis'    => ['type' => 'category', 'categories' => $data['categories'] ?? []],
+            'title'    => $this->title !== '' ? ['text' => $this->title, 'align' => 'left', 'style' => ['fontSize' => '14px']] : [],
             'subtitle' => $this->subtitle !== '' ? ['text' => $this->subtitle, 'align' => 'left'] : [],
         ]);
     }

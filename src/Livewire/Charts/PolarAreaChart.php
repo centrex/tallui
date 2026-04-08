@@ -24,9 +24,9 @@ class PolarAreaChart extends BaseChart
     protected function defaultOptions(): array
     {
         return [
-            'stroke'  => ['colors' => ['transparent']],
-            'fill'    => ['opacity' => 0.8],
-            'legend'  => ['position' => 'bottom'],
+            'stroke'      => ['colors' => ['transparent']],
+            'fill'        => ['opacity' => 0.8],
+            'legend'      => ['position' => 'bottom'],
             'plotOptions' => [
                 'polarArea' => [
                     'rings'  => ['strokeWidth' => 1],
@@ -49,9 +49,9 @@ class PolarAreaChart extends BaseChart
                 'theme'   => ['mode' => $this->theme],
                 'toolbar' => ['show' => false],
             ],
-            'series' => $data['series'] ?? [],
-            'labels' => $data['categories'] ?? [],
-            'title'  => $this->title !== '' ? ['text' => $this->title, 'align' => 'left', 'style' => ['fontSize' => '14px']] : [],
+            'series'   => $data['series'] ?? [],
+            'labels'   => $data['categories'] ?? [],
+            'title'    => $this->title !== '' ? ['text' => $this->title, 'align' => 'left', 'style' => ['fontSize' => '14px']] : [],
             'subtitle' => $this->subtitle !== '' ? ['text' => $this->subtitle, 'align' => 'left'] : [],
         ]);
     }

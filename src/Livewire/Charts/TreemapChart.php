@@ -19,6 +19,7 @@ namespace Centrex\TallUi\Livewire\Charts;
 class TreemapChart extends BaseChart
 {
     public bool $distributed = true;   // each cell gets its own colour
+
     public bool $enableShades = true;
 
     protected function chartType(): string
@@ -33,7 +34,7 @@ class TreemapChart extends BaseChart
             'dataLabels' => [
                 'enabled'   => true,
                 'style'     => ['fontSize' => '12px'],
-                'formatter' => "function(text, op){ return [text, op.value]; }",
+                'formatter' => 'function(text, op){ return [text, op.value]; }',
                 'offsetY'   => -4,
             ],
             'plotOptions' => [
@@ -59,8 +60,8 @@ class TreemapChart extends BaseChart
                 'toolbar'    => ['show' => true],
                 'animations' => ['enabled' => true],
             ],
-            'series' => $data['series'] ?? [],
-            'title'  => $this->title !== '' ? ['text' => $this->title, 'align' => 'left', 'style' => ['fontSize' => '14px']] : [],
+            'series'   => $data['series'] ?? [],
+            'title'    => $this->title !== '' ? ['text' => $this->title, 'align' => 'left', 'style' => ['fontSize' => '14px']] : [],
             'subtitle' => $this->subtitle !== '' ? ['text' => $this->subtitle, 'align' => 'left'] : [],
         ]);
     }
