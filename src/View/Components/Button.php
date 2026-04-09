@@ -44,9 +44,13 @@ class Button extends Component
 
         if ($this->spinner !== null) {
             if ($this->spinner === '1') {
-                $spinnerTarget = collect($this->attributes->getAttributes())
-                    ->filter(fn ($value, $key) => str_starts_with($key, 'wire:click'))
-                    ->first();
+                $wireClick = $this->attributes
+                    ->whereStartsWith('wire:click')
+                    ->getAttributes();
+
+                $spinnerTarget = count($wireClick)
+                    ? array_values($wireClick)[0] // get the action (e.g. "save")
+                    : null;
             } else {
                 $spinnerTarget = $this->spinner;
             }

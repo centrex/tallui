@@ -372,7 +372,7 @@ Sizes: `sm | md | lg`.
 <x-tallui-button label="Edit" icon="o-pencil" :link="route('orders.edit', $order)" class="btn-ghost btn-sm" />
 
 {{-- Loading spinner tied to wire:click --}}
-<x-tallui-button label="Save" :spinner="1" wire:click="save" class="btn-primary" />
+<x-tallui-button  wire:click="save" :spinner="save" label="Save" class="btn-primary" />
 
 {{-- Responsive: hides label on mobile --}}
 <x-tallui-button label="Delete" icon="o-trash" :responsive="true" class="btn-error" />
