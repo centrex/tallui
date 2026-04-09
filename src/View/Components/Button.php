@@ -43,9 +43,13 @@ class Button extends Component
         $spinnerTarget = null;
 
         if ($this->spinner !== null) {
-            $spinnerTarget = $this->spinner === '1'
-                ? $this->attributes->whereStartsWith('wire:click')->first() ?? 'defaultAction'
-                : $this->spinner;
+            if ($this->spinner === '1') {
+                $spinnerTarget = collect($this->attributes->getAttributes())
+                    ->filter(fn ($value, $key) => str_starts_with($key, 'wire:click'))
+                    ->first();
+            } else {
+                $spinnerTarget = $this->spinner;
+            }
         }
 
         return view('tallui::components.button')->with(compact('tooltipPosition', 'spinnerTarget'));

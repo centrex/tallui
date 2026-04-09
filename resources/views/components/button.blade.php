@@ -20,7 +20,7 @@
         data-tip="{{ $tooltip }}"
     @endif
 
-    @if($spinner)
+    @if($spinner && $spinnerTarget)
         wire:target="{{ $spinnerTarget }}"
         wire:loading.attr="disabled"
     @endif
