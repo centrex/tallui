@@ -40,7 +40,7 @@ class Button extends Component
             ? 'lg:tooltip-left'
             : ($this->tooltipRight ? 'lg:tooltip-right' : ($this->tooltipBottom ? 'lg:tooltip-bottom' : 'lg:tooltip-top'));
 
-        // $spinnerTarget = null;
+        $spinnerTarget = null;
 
         if ($this->spinner !== null) {
             if ($this->spinner === '1') {
