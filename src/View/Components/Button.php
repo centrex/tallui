@@ -44,7 +44,7 @@ class Button extends Component
 
         if ($this->spinner !== null) {
             $spinnerTarget = $this->spinner === '1'
-                ? $this->attributes->whereStartsWith('wire:click')->first()
+                ? $this->attributes->whereStartsWith('wire:click')->first() ?? 'defaultAction'
                 : $this->spinner;
         }
 
