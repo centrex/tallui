@@ -64,28 +64,17 @@ trait CachesData
     public function invalidateCache(): void
     {
         $store = Cache::store($this->cacheStore);
-        $tagKey = $this->componentCacheTag();
 
         // Tag-based invalidation (Redis, Memcached)
         if ($store->getStore() instanceof TaggableStore) {
-            $store->tags([$tagKey])->flush();
+            $store->tags([$this->componentCacheTag()])->flush();
 
             return;
         }
 
-        // Key-registry fallback for non-taggable drivers:
-        // maintain a list of keys under a registry entry in the array store.
-        $arrayStore = Cache::store('array');
-        $registryKey = 'tallui:registry:' . $tagKey;
-
-        /** @var array<string> $keys */
-        $keys = $arrayStore->get($registryKey, []);
-
-        foreach ($keys as $cacheKey) {
-            $arrayStore->forget($cacheKey);
-        }
-
-        $arrayStore->forget($registryKey);
+        // Array store is per-request memory — flush wipes all entries instantly,
+        // no registry needed.
+        Cache::store('array')->flush();
     }
 
     /**
@@ -103,29 +92,15 @@ trait CachesData
         }
 
         $store = Cache::store($this->cacheStore);
-        $tagKey = $this->componentCacheTag();
 
         // Tag-based stores handle invalidation automatically
         if ($store->getStore() instanceof TaggableStore) {
-            return $store->tags([$tagKey])->remember($key, $this->cacheTtl, $callback);
+            return $store->tags([$this->componentCacheTag()])->remember($key, $this->cacheTtl, $callback);
         }
 
-        // Non-taggable driver: use the array store so we never crash on
-        // drivers that don't support tags (file, database, etc.).
-        // The array store is per-process; invalidateCache() clears its registry.
-        $arrayStore = Cache::store('array');
-        $registryKey = 'tallui:registry:' . $tagKey;
-
-        /** @var array<string> $keys */
-        $keys = $arrayStore->get($registryKey, []);
-
-        if (!in_array($key, $keys, true)) {
-            $keys[] = $key;
-            // Keep registry alive longer than the cached items
-            $arrayStore->put($registryKey, $keys, $this->cacheTtl * 10);
-        }
-
-        return $arrayStore->remember($key, $this->cacheTtl, $callback);
+        // Non-taggable driver: use the array store (per-request memory).
+        // No registry needed — invalidateCache() calls flush() on the array store.
+        return Cache::store('array')->remember($key, $this->cacheTtl, $callback);
     }
 
     /**
