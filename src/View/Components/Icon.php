@@ -14,6 +14,8 @@ class Icon extends Component
 
     public function __construct(
         public string $name,
+        public ?string $id = null,
+        public ?string $label = null,
         public string $size = 'w-5 h-5',
     ) {
         $prefix = config('blade-heroicons.prefix', 'heroicon');

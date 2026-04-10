@@ -13,7 +13,7 @@ class EmptyState extends Component
     public function __construct(
         public string $title = 'No results found',
         public ?string $description = null,
-        public string $icon = 'heroicon-o-inbox',
+        public string $icon = 'o-inbox',
         public string $size = 'md',   // sm | md | lg
     ) {}
 

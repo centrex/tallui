@@ -14,10 +14,10 @@
         <div class="stat-desc flex items-center gap-1">
             @if($change)
                 @if($changeType === 'up')
-                    {!! $changeUpIcon !!}
+                    <x-tallui-icon name="o-arrow-trending-up" class="w-3 h-3 text-success shrink-0" />
                     <span class="text-success">{{ $change }}</span>
                 @elseif($changeType === 'down')
-                    {!! $changeDownIcon !!}
+                    <x-tallui-icon name="o-arrow-trending-down" class="w-3 h-3 text-error shrink-0" />
                     <span class="text-error">{{ $change }}</span>
                 @else
                     <span>{{ $change }}</span>

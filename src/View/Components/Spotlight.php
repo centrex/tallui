@@ -49,9 +49,7 @@ class Spotlight extends Component
             >
                 {{-- Trigger button --}}
                 <button @click="show()" class="btn btn-ghost btn-sm gap-2 text-base-content/60" {{ $attributes }}>
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                    </svg>
+                    <x-tallui-icon name="o-magnifying-glass" class="w-4 h-4" />
                     {{ $slot->isNotEmpty() ? $slot : 'Search...' }}
                     <kbd class="kbd kbd-xs">⌘K</kbd>
                 </button>
@@ -73,9 +71,7 @@ class Spotlight extends Component
                     <div class="w-full max-w-lg bg-base-100 rounded-2xl shadow-2xl border border-base-300 overflow-hidden">
                         {{-- Search input --}}
                         <div class="flex items-center gap-3 px-4 py-3 border-b border-base-200">
-                            <svg class="w-5 h-5 text-base-content/40 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                            </svg>
+                            <x-tallui-icon name="o-magnifying-glass" class="w-5 h-5 text-base-content/40 shrink-0" />
                             <input
                                 x-ref="input"
                                 x-model="query"

@@ -32,9 +32,7 @@ class Timeline extends Component
                                 @if(isset($item['icon']))
                                     <x-tallui-icon :name="$item['icon']" class="w-3 h-3 text-white" />
                                 @else
-                                    <svg class="w-3 h-3 text-white" viewBox="0 0 20 20" fill="currentColor">
-                                        <circle cx="10" cy="10" r="4"/>
-                                    </svg>
+                                    <x-tallui-icon name="s-circle-stack" class="w-3 h-3 text-white" />
                                 @endif
                             </div>
                         </div>

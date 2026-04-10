@@ -18,10 +18,10 @@ class Alert extends Component
     ];
 
     private const DEFAULT_ICONS = [
-        'success' => 'heroicon-o-check-circle',
-        'warning' => 'heroicon-o-exclamation-triangle',
-        'error'   => 'heroicon-o-x-circle',
-        'info'    => 'heroicon-o-information-circle',
+        'success' => 'o-check-circle',
+        'warning' => 'o-exclamation-triangle',
+        'error'   => 'o-x-circle',
+        'info'    => 'o-information-circle',
     ];
 
     public function __construct(
@@ -35,7 +35,7 @@ class Alert extends Component
     {
         return view('tallui::components.alert')->with([
             'alertClass' => self::ALERT_CLASS_MAP[$this->type] ?? 'alert-info',
-            'icon'       => $this->icon ?? self::DEFAULT_ICONS[$this->type] ?? 'heroicon-o-information-circle',
+            'icon'       => $this->icon ?? self::DEFAULT_ICONS[$this->type] ?? 'o-information-circle',
         ]);
     }
 }

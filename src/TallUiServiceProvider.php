@@ -41,6 +41,21 @@ class TallUiServiceProvider extends ServiceProvider
     {
         Blade::component(\BladeUI\Icons\Components\Icon::class, 'svg');
 
+        // No matter if components has custom prefix or not,
+        // we also register below alias to avoid naming collision,
+        // because they are used inside some TallUi's components itself.
+        Blade::component('tallui-button', View\Components\Button::class);
+        Blade::component('tallui-card', View\Components\Card::class);
+        Blade::component('tallui-icon', View\Components\Icon::class);
+        Blade::component('tallui-input', View\Components\Form\Input::class);
+        Blade::component('tallui-list-item', View\Components\ListItem::class);
+        Blade::component('tallui-modal', View\Components\Modal::class);
+        Blade::component('tallui-menu', View\Components\Menu::class);
+        Blade::component('tallui-menu-item', View\Components\MenuItem::class);
+        Blade::component('tallui-header', View\Components\Header::class);
+        Blade::component('tallui-pagination', View\Components\Pagination::class);
+        Blade::component('tallui-popover', View\Components\Popover::class);
+
         $prefix = self::$prefixCache ??= config('tallui.prefix', 'tallui');
 
         $components = [
@@ -73,6 +88,9 @@ class TallUiServiceProvider extends ServiceProvider
             'group'         => View\Components\Group::class,
             'image-gallery' => View\Components\ImageGallery::class,
             'menu'          => View\Components\Menu::class,
+            'menu-item'     => View\Components\MenuItem::class,
+            'list-item'     => View\Components\ListItem::class,
+            'pagination'    => View\Components\Pagination::class,
             'popover'       => View\Components\Popover::class,
             'spotlight'     => View\Components\Spotlight::class,
             'swap'          => View\Components\Swap::class,

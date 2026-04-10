@@ -24,7 +24,7 @@ class Modal extends Component
         return <<<'BLADE'
             {{--
                 Usage:
-                  <x-tallui-modal id="confirm-delete" title="Delete user?" icon="heroicon-o-trash" icon-color="text-error">
+                  <x-tallui-modal id="confirm-delete" title="Delete user?" icon="o-trash" icon-color="text-error">
                       <x-slot:trigger>
                           <button class="btn btn-error" @click="$dispatch('open-modal', 'confirm-delete')">Delete</button>
                       </x-slot:trigger>
@@ -106,9 +106,7 @@ class Modal extends Component
                                         class="btn btn-ghost btn-sm btn-circle text-base-content/50 hover:text-base-content"
                                         aria-label="Close"
                                     >
-                                        <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
-                                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
-                                        </svg>
+                                        <x-tallui-icon name="o-x-mark" class="w-4 h-4" />
                                     </button>
                                 @endif
                             </div>

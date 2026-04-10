@@ -25,11 +25,11 @@ class Dialog extends Component
 
         // Auto-assign icon per type if not provided
         $this->icon ??= match ($type) {
-            'success' => 'heroicon-o-check-circle',
-            'warning' => 'heroicon-o-exclamation-triangle',
-            'error'   => 'heroicon-o-x-circle',
-            'confirm' => 'heroicon-o-question-mark-circle',
-            default   => 'heroicon-o-information-circle',
+            'success' => 'o-check-circle',
+            'warning' => 'o-exclamation-triangle',
+            'error'   => 'o-x-circle',
+            'confirm' => 'o-question-mark-circle',
+            default   => 'o-information-circle',
         };
     }
 

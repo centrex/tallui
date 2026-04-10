@@ -85,9 +85,7 @@ class Sidebar extends Component
                                     class="{{ $persistent ? $collapseBreakpoint . ':hidden' : '' }} btn btn-ghost btn-sm btn-circle ml-auto"
                                     aria-label="Close sidebar"
                                 >
-                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                                    </svg>
+                                    <x-tallui-icon name="o-x-mark" class="w-4 h-4" />
                                 </button>
                             @endif
                         </div>
