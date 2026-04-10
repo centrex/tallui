@@ -14,12 +14,12 @@ class MenuItem extends Component
         public ?string $label = null,
         public ?string $icon = null,
         public ?string $link = null,
-        public bool    $active = false,
-        public bool    $noWireNavigate = false,
+        public bool $active = false,
+        public bool $noWireNavigate = false,
         public ?string $badge = null,
-        public string  $badgeType = 'primary',
+        public string $badgeType = 'primary',
         // Separator / section title
-        public bool    $separator = false,
+        public bool $separator = false,
         public ?string $sectionTitle = null,
     ) {}
 

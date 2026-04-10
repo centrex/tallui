@@ -11,13 +11,13 @@ use Illuminate\View\Component;
 class Stat extends Component
 {
     public function __construct(
-        public string  $title = '',
-        public string  $value = '',
+        public string $title = '',
+        public string $value = '',
         public ?string $desc = null,
         public ?string $icon = null,
-        public string  $iconColor = 'text-primary',
+        public string $iconColor = 'text-primary',
         public ?string $change = null,
-        public string  $changeType = 'neutral',  // up | down | neutral
+        public string $changeType = 'neutral',  // up | down | neutral
     ) {}
 
     public function render(): View|Closure|string

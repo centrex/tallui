@@ -11,7 +11,7 @@ use Illuminate\View\Component;
 class Notification extends Component
 {
     public function __construct(
-        public int    $timeout  = 4000,
+        public int $timeout = 4000,
         public string $position = 'top-right',
     ) {}
 

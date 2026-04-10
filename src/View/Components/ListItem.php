@@ -21,19 +21,19 @@ class ListItem extends Component
         public ?string $avatar = null,     // image URL
         public ?string $avatarAlt = null,
         public ?string $icon = null,       // heroicon short name, e.g. o-user
-        public string  $iconColor = 'text-base-content/40',
+        public string $iconColor = 'text-base-content/40',
 
         // Link
         public ?string $link = null,
-        public bool    $noWireNavigate = false,
+        public bool $noWireNavigate = false,
 
         // Badges / labels
         public ?string $badge = null,      // text shown in a badge
-        public string  $badgeType = 'neutral',
+        public string $badgeType = 'neutral',
 
         // Layout
-        public bool    $separator = true,  // border-b between items
-        public bool    $compact = false,
+        public bool $separator = true,  // border-b between items
+        public bool $compact = false,
     ) {}
 
     public function render(): View|Closure|string

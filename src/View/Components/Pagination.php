@@ -13,40 +13,43 @@ class Pagination extends Component
 {
     public function __construct(
         public LengthAwarePaginator $paginator,
-        public string  $size = '',           // xs | sm | md (default) | lg
-        public bool    $showInfo = true,     // "Showing X–Y of Z"
-        public bool    $showPerPage = false, // per-page selector
-        public array   $perPageOptions = [10, 25, 50, 100],
-        public string  $align = 'center',   // start | center | end
+        public string $size = '',           // xs | sm | md (default) | lg
+        public bool $showInfo = true,     // "Showing X–Y of Z"
+        public bool $showPerPage = false, // per-page selector
+        public array $perPageOptions = [10, 25, 50, 100],
+        public string $align = 'center',   // start | center | end
     ) {}
 
     public function render(): View|Closure|string
     {
-        $pg        = $this->paginator;
-        $total     = $pg->total();
-        $perPage   = $pg->perPage();
+        $pg = $this->paginator;
+        $total = $pg->total();
+        $perPage = $pg->perPage();
         $firstItem = $pg->firstItem() ?? 0;
-        $lastItem  = $pg->lastItem()  ?? 0;
-        $lastPage  = $pg->lastPage();
-        $current   = $pg->currentPage();
+        $lastItem = $pg->lastItem() ?? 0;
+        $lastPage = $pg->lastPage();
+        $current = $pg->currentPage();
 
         // Build a sliding window: always show first, last, current±2, with ellipsis
-        $window  = [];
-        $gap     = '…';
+        $window = [];
+        $gap = '…';
 
         if ($lastPage <= 7) {
             $window = range(1, $lastPage);
         } else {
-            $left  = max(2, $current - 2);
+            $left = max(2, $current - 2);
             $right = min($lastPage - 1, $current + 2);
 
             $window[] = 1;
+
             if ($left > 2) {
                 $window[] = $gap;
             }
+
             foreach (range($left, $right) as $p) {
                 $window[] = $p;
             }
+
             if ($right < $lastPage - 1) {
                 $window[] = $gap;
             }
@@ -54,14 +57,14 @@ class Pagination extends Component
         }
 
         return view('tallui::components.pagination', [
-            'pg'             => $pg,
-            'total'          => $total,
-            'firstItem'      => $firstItem,
-            'lastItem'       => $lastItem,
-            'lastPage'       => $lastPage,
-            'current'        => $current,
-            'window'         => $window,
-            'gap'            => $gap,
+            'pg'        => $pg,
+            'total'     => $total,
+            'firstItem' => $firstItem,
+            'lastItem'  => $lastItem,
+            'lastPage'  => $lastPage,
+            'current'   => $current,
+            'window'    => $window,
+            'gap'       => $gap,
         ]);
     }
 }
