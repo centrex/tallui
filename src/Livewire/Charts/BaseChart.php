@@ -27,6 +27,12 @@ abstract class BaseChart extends Component
     /** FQCN implementing ChartDataProvider */
     public ?string $dataProvider = null;
 
+    /** Inline series — takes priority over dataProvider when non-empty. */
+    public array $series = [];
+
+    /** Inline categories — used alongside $series for inline data. */
+    public array $categories = [];
+
     abstract protected function chartType(): string;
 
     /** @return array<string, mixed> */
@@ -43,12 +49,17 @@ abstract class BaseChart extends Component
     }
 
     /**
-     * Resolve data from either the dataProvider or the inline data() method.
+     * Resolve data from inline props, dataProvider, or the overridable data() method.
+     * Priority: inline $series/$categories > dataProvider > data()
      *
      * @return array{series: array<int, array<string, mixed>>, categories: array<int, mixed>}
      */
     protected function resolveData(): array
     {
+        if ($this->series !== []) {
+            return ['series' => $this->series, 'categories' => $this->categories];
+        }
+
         if ($this->dataProvider !== null && class_exists($this->dataProvider)) {
             /** @var ChartDataProvider $provider */
             $provider = app($this->dataProvider);
