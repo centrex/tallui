@@ -40,11 +40,11 @@ class TallUiServiceProvider extends ServiceProvider
     public function registerComponents(): void
     {
         Blade::component(\BladeUI\Icons\Components\Icon::class, 'svg');
-        Blade::component(\BladeUI\Icons\Components\Icon::class, 'tallui-icon');
 
         $prefix = self::$prefixCache ??= config('tallui.prefix', 'tallui');
 
         $components = [
+            'icon'          => View\Components\Icon::class,
             'button'        => View\Components\Button::class,
             'input'         => View\Components\Form\Input::class,
             'form-group'    => View\Components\Form\FormGroup::class,

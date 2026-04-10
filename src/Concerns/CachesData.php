@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace Centrex\TallUi\Concerns;
 
+use Illuminate\Cache\TaggableStore;
 use Illuminate\Support\Facades\Cache;
 
 trait CachesData
@@ -66,23 +67,25 @@ trait CachesData
         $tagKey = $this->componentCacheTag();
 
         // Tag-based invalidation (Redis, Memcached)
-        if (method_exists($store, 'tags')) {
+        if ($store->getStore() instanceof TaggableStore) {
             $store->tags([$tagKey])->flush();
 
             return;
         }
 
-        // Key-registry fallback: we maintain a list of keys under a registry entry
+        // Key-registry fallback for non-taggable drivers:
+        // maintain a list of keys under a registry entry in the array store.
+        $arrayStore = Cache::store('array');
         $registryKey = 'tallui:registry:' . $tagKey;
 
         /** @var array<string> $keys */
-        $keys = $store->get($registryKey, []);
+        $keys = $arrayStore->get($registryKey, []);
 
         foreach ($keys as $cacheKey) {
-            $store->forget($cacheKey);
+            $arrayStore->forget($cacheKey);
         }
 
-        $store->forget($registryKey);
+        $arrayStore->forget($registryKey);
     }
 
     /**
@@ -103,23 +106,26 @@ trait CachesData
         $tagKey = $this->componentCacheTag();
 
         // Tag-based stores handle invalidation automatically
-        if (method_exists($store, 'tags')) {
+        if ($store->getStore() instanceof TaggableStore) {
             return $store->tags([$tagKey])->remember($key, $this->cacheTtl, $callback);
         }
 
-        // Register the key in the registry for later invalidation
+        // Non-taggable driver: use the array store so we never crash on
+        // drivers that don't support tags (file, database, etc.).
+        // The array store is per-process; invalidateCache() clears its registry.
+        $arrayStore = Cache::store('array');
         $registryKey = 'tallui:registry:' . $tagKey;
 
         /** @var array<string> $keys */
-        $keys = $store->get($registryKey, []);
+        $keys = $arrayStore->get($registryKey, []);
 
         if (!in_array($key, $keys, true)) {
             $keys[] = $key;
             // Keep registry alive longer than the cached items
-            $store->put($registryKey, $keys, $this->cacheTtl * 10);
+            $arrayStore->put($registryKey, $keys, $this->cacheTtl * 10);
         }
 
-        return $store->remember($key, $this->cacheTtl, $callback);
+        return $arrayStore->remember($key, $this->cacheTtl, $callback);
     }
 
     /**
