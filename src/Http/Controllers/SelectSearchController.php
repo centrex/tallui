@@ -78,16 +78,16 @@ class SelectSearchController extends Controller
         int $limit,
     ): string {
         return 'tallui:select:' . md5(serialize([
-            'name' => $name,
-            'model' => $modelClass,
-            'label' => $labelColumn,
-            'value' => $valueColumn,
-            'scope' => $scope,
-            'query' => $query,
+            'name'   => $name,
+            'model'  => $modelClass,
+            'label'  => $labelColumn,
+            'value'  => $valueColumn,
+            'scope'  => $scope,
+            'query'  => $query,
             'search' => $searchColumns,
-            'order' => $orderBy,
-            'dir' => $direction,
-            'limit' => $limit,
+            'order'  => $orderBy,
+            'dir'    => $direction,
+            'limit'  => $limit,
         ]));
     }
 

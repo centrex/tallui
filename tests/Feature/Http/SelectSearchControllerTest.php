@@ -29,9 +29,9 @@ it('returns 422 for a registered name with a non-existent model class', function
 it('returns matching results for an allowlisted model', function (): void {
     config(['tallui.forms.searchable_models' => [
         'user' => [
-            'model' => User::class,
-            'label' => 'name',
-            'value' => 'id',
+            'model'          => User::class,
+            'label'          => 'name',
+            'value'          => 'id',
             'search_columns' => ['name', 'email'],
         ],
     ]]);
@@ -78,11 +78,11 @@ it('is case-insensitive for the search query', function (): void {
 it('supports searching across configured columns and orders results', function (): void {
     config(['tallui.forms.searchable_models' => [
         'user' => [
-            'model' => User::class,
-            'label' => 'name',
-            'value' => 'id',
-            'search_columns' => ['name', 'email'],
-            'order_by' => 'name',
+            'model'           => User::class,
+            'label'           => 'name',
+            'value'           => 'id',
+            'search_columns'  => ['name', 'email'],
+            'order_by'        => 'name',
             'order_direction' => 'asc',
         ],
     ]]);
