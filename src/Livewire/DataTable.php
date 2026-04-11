@@ -37,6 +37,10 @@ class DataTable extends Component
     #[Url(as: 'dir', history: true)]
     public string $sortDirection = 'asc';
 
+    public string $defaultSortBy = '';
+
+    public string $defaultSortDirection = 'asc';
+
     // ── Pagination ────────────────────────────────────────────────────────
 
     public int $perPage = 15;
@@ -125,12 +129,25 @@ class DataTable extends Component
             fn (Column $col): array => $col->toArray(),
             $this->columns(),
         );
+
+        $this->perPage = $this->normalizePerPage($this->perPage);
+
+        if ($this->sortBy === '' && $this->defaultSortBy !== '' && $this->isSortableColumn($this->defaultSortBy)) {
+            $this->sortBy = $this->defaultSortBy;
+            $this->sortDirection = strtolower($this->defaultSortDirection) === 'desc' ? 'desc' : 'asc';
+        } elseif (!$this->isValidSortDirection($this->sortDirection)) {
+            $this->sortDirection = 'asc';
+        }
     }
 
     // ── Actions ───────────────────────────────────────────────────────────
 
     public function sort(string $column): void
     {
+        if (!$this->isSortableColumn($column)) {
+            return;
+        }
+
         if ($this->sortBy === $column) {
             $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
         } else {
@@ -215,7 +232,7 @@ class DataTable extends Component
                 $query->where(function (Builder $q) use ($searchableCols): void {
                     foreach ($searchableCols as $col) {
                         if ($col['key'] !== null) {
-                            $q->orWhere($col['key'], 'like', '%' . $this->search . '%');
+                            $this->applySearchConstraint($q, $col['key'], $this->search);
                         }
                     }
                 });
@@ -228,8 +245,10 @@ class DataTable extends Component
             $query->whereIn($this->primaryKey, $this->selectedRows);
         }
 
-        if ($this->sortBy !== '') {
+        if ($this->sortBy !== '' && $this->isSortableColumn($this->sortBy)) {
             $query->orderBy($this->sortBy, $this->sortDirection);
+        } elseif ($this->defaultSortBy !== '' && $this->isSortableColumn($this->defaultSortBy)) {
+            $query->orderBy($this->defaultSortBy, $this->defaultSortDirection === 'desc' ? 'desc' : 'asc');
         }
 
         return $query;
@@ -287,6 +306,7 @@ class DataTable extends Component
 
     public function updatedPerPage(): void
     {
+        $this->perPage = $this->normalizePerPage($this->perPage);
         $this->resetPage();
     }
 
@@ -321,7 +341,7 @@ class DataTable extends Component
                 $query->where(function (Builder $q) use ($searchableCols): void {
                     foreach ($searchableCols as $col) {
                         if ($col['key'] !== null) {
-                            $q->orWhere($col['key'], 'like', '%' . $this->search . '%');
+                            $this->applySearchConstraint($q, $col['key'], $this->search);
                         }
                     }
                 });
@@ -332,8 +352,10 @@ class DataTable extends Component
         $this->applyFilters($query);
 
         // Sorting
-        if ($this->sortBy !== '') {
+        if ($this->sortBy !== '' && $this->isSortableColumn($this->sortBy)) {
             $query->orderBy($this->sortBy, $this->sortDirection);
+        } elseif ($this->defaultSortBy !== '' && $this->isSortableColumn($this->defaultSortBy)) {
+            $query->orderBy($this->defaultSortBy, $this->defaultSortDirection === 'desc' ? 'desc' : 'asc');
         }
 
         return $query->paginate($this->perPage);
@@ -402,6 +424,53 @@ class DataTable extends Component
         }
 
         return e((string) ($value ?? ''));
+    }
+
+    protected function applySearchConstraint(Builder $query, string $column, string $search): void
+    {
+        if (!str_contains($column, '.')) {
+            $query->orWhere($column, 'like', '%' . $search . '%');
+
+            return;
+        }
+
+        $segments = explode('.', $column);
+        $field = array_pop($segments);
+        $relation = implode('.', $segments);
+
+        $query->orWhereHas($relation, function (Builder $relationQuery) use ($field, $search): void {
+            $relationQuery->where($field, 'like', '%' . $search . '%');
+        });
+    }
+
+    protected function sortableColumns(): array
+    {
+        return array_values(array_map(
+            fn (array $col): string => (string) $col['key'],
+            array_filter(
+                $this->columnDefs,
+                fn (array $col): bool => ($col['sortable'] ?? false) && !empty($col['key']) && !str_contains((string) $col['key'], '.'),
+            ),
+        ));
+    }
+
+    protected function isSortableColumn(string $column): bool
+    {
+        return in_array($column, $this->sortableColumns(), true);
+    }
+
+    protected function isValidSortDirection(string $direction): bool
+    {
+        return in_array($direction, ['asc', 'desc'], true);
+    }
+
+    protected function normalizePerPage(int $perPage): int
+    {
+        $allowed = $this->perPageOptions();
+
+        return in_array($perPage, $allowed, true)
+            ? $perPage
+            : (int) ($allowed[0] ?? 15);
     }
 
     public function render(): View

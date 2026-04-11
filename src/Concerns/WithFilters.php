@@ -112,7 +112,23 @@ trait WithFilters
 
     private function applySelectFilter(Builder $query, Filter $filter): void
     {
-        $this->tableFilters[$filter->column] ?? '';
+        $value = $this->tableFilters[$filter->column] ?? '';
+
+        if ($value === '' || $value === null || $value === []) {
+            return;
+        }
+
+        if ($filter->multiple) {
+            $values = is_array($value) ? array_values(array_filter($value, fn (mixed $v): bool => $v !== '' && $v !== null)) : [$value];
+
+            if ($values !== []) {
+                $query->whereIn($filter->column, $values);
+            }
+
+            return;
+        }
+
+        $query->where($filter->column, $value);
     }
 
     private function applyDateFilter(Builder $query, Filter $filter): void
@@ -143,6 +159,12 @@ trait WithFilters
 
     private function applyBooleanFilter(Builder $query, Filter $filter): void
     {
-        $this->tableFilters[$filter->column] ?? '';
+        $value = $this->tableFilters[$filter->column] ?? '';
+
+        if ($value === '' || $value === null) {
+            return;
+        }
+
+        $query->where($filter->column, filter_var($value, FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE) ?? false);
     }
 }

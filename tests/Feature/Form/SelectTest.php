@@ -23,6 +23,19 @@ describe('Select component properties', function (): void {
         expect((new Select(name: 'role', searchable: true))->searchable)->toBeTrue();
     });
 
+    it('sorts options alphabetically by default', function (): void {
+        $c = new Select(name: 'role', options: ['user' => 'User', 'admin' => 'Admin']);
+
+        expect(array_values($c->options))->toBe(['Admin', 'User']);
+    });
+
+    it('resolves async select url from searchName', function (): void {
+        $c = new Select(name: 'user_id', searchable: true, searchName: 'user');
+
+        expect($c->isAsyncSearch)->toBeTrue()
+            ->and($c->resolvedSearchUrl)->toContain('select-search');
+    });
+
     it('resolves size class', function (): void {
         expect((new Select(name: 'role', size: 'sm'))->sizeClass)->toBe('select-sm');
     });

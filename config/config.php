@@ -72,4 +72,19 @@ return [
             'class' => 'App\Support\Spotlight',
         ],
     ],
+
+    /**
+     * Searchable models for the Select component.
+     */
+    'searchable_models' => [
+        'user' => [
+            'model' => App\Models\User::class,
+            'label' => 'name',
+            'value' => 'id',
+            'search_columns' => ['name', 'email'],
+            'order_by' => 'name',
+            'order_direction' => 'asc',
+            'limit' => 25,
+        ],
+    ],
 ];

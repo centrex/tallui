@@ -40,3 +40,11 @@ it('renders per-page options from config', function (): void {
         ->assertSee('10')
         ->assertSee('20');
 });
+
+it('normalizes invalid per-page values to the first configured option', function (): void {
+    config(['tallui.datatable.per_page_options' => [5, 10, 20]]);
+
+    livewire(UsersTable::class)
+        ->set('perPage', 999)
+        ->assertSet('perPage', 5);
+});

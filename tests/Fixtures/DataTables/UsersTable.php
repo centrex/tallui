@@ -11,6 +11,8 @@ use Illuminate\Database\Eloquent\Builder;
 
 class UsersTable extends DataTable
 {
+    public string $defaultSortBy = 'name';
+
     public function query(): Builder
     {
         return User::query();

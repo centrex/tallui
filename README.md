@@ -525,6 +525,95 @@ Selectable image picker with lightbox and form submission support. Double-click 
 
 ---
 
+#### Select
+
+`<x-tallui-select />` supports three common modes:
+
+1. Standard select with automatically sorted labels
+2. Searchable select with client-side filtering for static options
+3. Async searchable select backed by a model registry or custom endpoint
+
+```blade
+{{-- Standard select: options are sorted by label by default --}}
+<x-tallui-select
+    name="role"
+    label="Role"
+    :options="$roles"
+    wire:model="role"
+/>
+
+{{-- Local searchable select for static options --}}
+<x-tallui-select
+    name="warehouse_id"
+    label="Warehouse"
+    :options="$warehouses"
+    searchable
+    wire:model="warehouse_id"
+/>
+
+{{-- Async searchable select using the TallUI search registry --}}
+<x-tallui-select
+    name="customer_id"
+    label="Customer"
+    searchable
+    search-name="customer"
+    wire:model="customer_id"
+/>
+```
+
+If `searchable` is enabled without `search-name` or `search-url`, the component filters the provided options in the browser. If `searchable` is combined with `search-name` or `search-url`, it performs async lookups instead.
+
+| Prop | Default | Description |
+|---|---|---|
+| `options` | `[]` | Flat associative array or `[{value, label}]` list |
+| `searchable` | `false` | Enables search mode |
+| `search-name` | `null` | Registry key for the built-in async search route |
+| `search-url` | `null` | Fully custom async search endpoint |
+| `sort` | `true` | Sort static options by label |
+| `placeholder` | `null` | Placeholder/empty option label |
+| `required` | `false` | Marks the field as required |
+| `disabled` | `false` | Disables the field |
+
+#### Async Select Configuration
+
+Register searchable models in `config/tallui.php`:
+
+```php
+'searchable_models' => [
+    'customer' => [
+        'model' => App\Models\Customer::class,
+        'label' => 'name',
+        'value' => 'id',
+        'search_columns' => ['name', 'email', 'phone'],
+        'order_by' => 'name',
+        'order_direction' => 'asc',
+        'limit' => 25,
+    ],
+],
+```
+
+```blade
+<x-tallui-select
+    name="customer_id"
+    label="Customer"
+    searchable
+    search-name="customer"
+    wire:model="customer_id"
+/>
+```
+
+| Config Key | Description |
+|---|---|
+| `model` | Eloquent model class used for lookups |
+| `label` | Column used for the displayed text |
+| `value` | Column returned as the selected value |
+| `search_columns` | Columns searched by the async endpoint |
+| `order_by` | Default ordering column |
+| `order_direction` | `asc` or `desc` |
+| `limit` | Maximum results returned per query |
+
+---
+
 #### Range Slider
 
 ```blade
@@ -665,6 +754,8 @@ use Illuminate\Database\Eloquent\Builder;
 
 class CustomerTable extends DataTable
 {
+    public string $defaultSortBy = 'name';
+
     public function columns(): array
     {
         return [
@@ -687,7 +778,15 @@ class CustomerTable extends DataTable
 <livewire:tallui-data-table />
 ```
 
-Features: URL-synced search/sort/page (`#[Url]`), per-page selector, row selection, CSV export (chunked + UTF-8 BOM), optional result caching via `$cacheTtl`.
+Features: URL-synced search/sort/page (`#[Url]`), sortable-column allowlisting, default sort support, per-page selector with normalization, row selection, CSV export (chunked + UTF-8 BOM), optional result caching via `$cacheTtl`, and relation-aware search for searchable columns such as `customer.name`.
+
+#### DataTable Notes
+
+- Only columns marked with `->sortable()` can be used for sorting.
+- Set `$defaultSortBy` and `$defaultSortDirection` to define the initial ordering.
+- Searchable relation columns such as `customer.name` are supported in the global search.
+- Invalid `perPage` values fall back to the first configured per-page option.
+- `Filter::select()` and `Filter::boolean()` apply real query constraints instead of acting as UI-only filters.
 
 ### Responsive DataTable
 

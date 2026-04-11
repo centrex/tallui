@@ -32,6 +32,7 @@ it('returns matching results for an allowlisted model', function (): void {
             'model' => User::class,
             'label' => 'name',
             'value' => 'id',
+            'search_columns' => ['name', 'email'],
         ],
     ]]);
 
@@ -72,6 +73,27 @@ it('is case-insensitive for the search query', function (): void {
     $this->getJson(route('tallui.select-search', ['name' => 'user', 'q' => 'ALICE']))
         ->assertOk()
         ->assertJsonFragment(['label' => 'Alice Smith']);
+});
+
+it('supports searching across configured columns and orders results', function (): void {
+    config(['tallui.forms.searchable_models' => [
+        'user' => [
+            'model' => User::class,
+            'label' => 'name',
+            'value' => 'id',
+            'search_columns' => ['name', 'email'],
+            'order_by' => 'name',
+            'order_direction' => 'asc',
+        ],
+    ]]);
+
+    $response = $this->getJson(route('tallui.select-search', ['name' => 'user', 'q' => 'test.com']))
+        ->assertOk()
+        ->json();
+
+    expect($response)->toHaveCount(3)
+        ->and($response[0]['label'])->toBe('Alice Smith')
+        ->and($response[1]['label'])->toBe('Bob Johnson');
 });
 
 it('requires the name parameter', function (): void {

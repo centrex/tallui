@@ -50,3 +50,10 @@ it('sort resets to page 1', function (): void {
         ->call('sort', 'name')
         ->assertSet('page', 1);
 });
+
+it('ignores invalid sort columns', function (): void {
+    livewire(UsersTable::class)
+        ->call('sort', 'created_at')
+        ->assertSet('sortBy', 'name')
+        ->assertSet('sortDirection', 'asc');
+});

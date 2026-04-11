@@ -15,6 +15,13 @@ class Select extends Component
     /** @var array<int|string, string> */
     public array $options;
 
+    /** @var array<int, array{value:mixed,label:string}> */
+    public array $normalizedOptions;
+
+    public bool $isAsyncSearch;
+
+    public ?string $resolvedSearchUrl;
+
     public function __construct(
         public string $name = '',
         public ?string $label = null,
@@ -25,6 +32,8 @@ class Select extends Component
         public bool $disabled = false,
         public bool $searchable = false,
         public ?string $searchUrl = null,
+        public ?string $searchName = null,
+        public bool $sort = true,
         public string $size = '',
         mixed $options = [],
     ) {
@@ -39,6 +48,23 @@ class Select extends Component
         };
 
         $this->options = is_array($options) ? $options : [];
+
+        if ($this->sort) {
+            asort($this->options, SORT_NATURAL | SORT_FLAG_CASE);
+        }
+
+        $this->normalizedOptions = collect($this->options)
+            ->map(fn (mixed $label, mixed $value): array => ['value' => $value, 'label' => (string) $label])
+            ->values()
+            ->all();
+
+        $this->resolvedSearchUrl = $this->searchUrl;
+
+        if ($this->searchName !== null && $this->searchUrl === null && function_exists('route')) {
+            $this->resolvedSearchUrl = route('tallui.select-search', ['name' => $this->searchName]);
+        }
+
+        $this->isAsyncSearch = $this->searchable && $this->resolvedSearchUrl !== null;
     }
 
     public function render(): View|Closure|string
@@ -55,18 +81,27 @@ class Select extends Component
                 @endif
 
                 @if($searchable)
-                    {{-- Async searchable select with Alpine.js --}}
                     <div
                         x-data="{
                             open: false,
                             search: '',
                             selected: null,
                             selectedLabel: '',
-                            items: @js($options),
-                            searchUrl: '{{ $searchUrl ?? route('tallui.select-search') }}',
+                            items: @js($normalizedOptions),
+                            allItems: @js($normalizedOptions),
+                            searchUrl: @js($resolvedSearchUrl),
+                            asyncMode: @js($isAsyncSearch),
                             async fetchItems() {
-                                if (!this.searchUrl) return;
-                                const res = await fetch(this.searchUrl + '&q=' + encodeURIComponent(this.search) + '&name={{ $name }}');
+                                if (!this.asyncMode || !this.searchUrl) {
+                                    const term = this.search.toLowerCase();
+                                    this.items = this.allItems.filter(item => item.label.toLowerCase().includes(term));
+                                    return;
+                                }
+
+                                const url = new URL(this.searchUrl, window.location.origin);
+                                url.searchParams.set('q', this.search);
+
+                                const res = await fetch(url.toString(), { headers: { 'Accept': 'application/json' } });
                                 this.items = await res.json();
                             },
                             selectItem(item) {
@@ -86,6 +121,7 @@ class Select extends Component
                             @input.debounce.300ms="fetchItems()"
                             @click.away="open = false"
                             @keydown.escape="open = false"
+                            @if(!$isAsyncSearch) x-init="items = allItems" @endif
                             @if($placeholder) placeholder="{{ $placeholder }}" @endif
                             @if($disabled) disabled @endif
                             class="input input-bordered w-full {{ $sizeClass }} @if($error) input-error @endif"
