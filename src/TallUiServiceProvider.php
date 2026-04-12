@@ -7,6 +7,7 @@ namespace Centrex\TallUi;
 use Centrex\TallUi\Commands\{TallUiBootcampCommand, TallUiInstallCommand};
 use Centrex\TallUi\Livewire\Charts\{AreaChart, BarChart, LineChart, MixedChart, PieChart, PolarAreaChart, RadarChart, RadialBarChart, RangeAreaChart, TreemapChart};
 use Centrex\TallUi\Livewire\DataTable;
+use Centrex\TallUi\Support\PackageVite;
 use Illuminate\Support\{Arr, ServiceProvider};
 use Illuminate\Support\Facades\Blade;
 use Livewire\Livewire;
@@ -18,6 +19,7 @@ class TallUiServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->loadViewsFrom(__DIR__ . '/../resources/views', 'tallui');
+        $this->registerViteDirective();
         $this->registerComponents();
         $this->registerLivewireComponents();
         $this->registerBladeDirectives();
@@ -35,6 +37,17 @@ class TallUiServiceProvider extends ServiceProvider
 
             $this->commands([TallUiInstallCommand::class, TallUiBootcampCommand::class]);
         }
+    }
+
+    private function registerViteDirective(): void
+    {
+        Blade::directive('talluiVite', fn (): string => sprintf(
+            '<?php echo \\%s::render(%s, %s, %s); ?>',
+            PackageVite::class,
+            var_export(dirname(__DIR__), true),
+            var_export('tallui.hot', true),
+            var_export(['resources/js/app.js'], true),
+        ));
     }
 
     public function registerComponents(): void
