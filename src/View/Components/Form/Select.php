@@ -1,12 +1,11 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace Centrex\TallUi\View\Components\Form;
 
 use Closure;
 use Illuminate\Contracts\View\View;
-use Illuminate\Support\Collection;
 use Illuminate\View\Component;
 
 class Select extends Component
@@ -42,9 +41,9 @@ class Select extends Component
         $resolvedSize = $size !== '' ? $size : $configSize;
 
         $this->sizeClass = match ($resolvedSize) {
-            'xs' => 'select-xs',
-            'sm' => 'select-sm',
-            'lg' => 'select-lg',
+            'xs'    => 'select-xs',
+            'sm'    => 'select-sm',
+            'lg'    => 'select-lg',
             default => 'select-md',
         };
 
@@ -61,7 +60,7 @@ class Select extends Component
     }
 
     /**
-     * @param array<int|string, mixed> $options
+     * @param  array<int|string, mixed>  $options
      * @return array<int, array{value:mixed,label:string}>
      */
     protected function normalizeOptions(array $options): array
