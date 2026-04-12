@@ -203,12 +203,68 @@ Named slots: `headerSlot`, `footerSlot`.
 
 #### Menu
 
+Link item:
+```blade
+<x-tallui-menu-item
+    label="Dashboard"
+    icon="home"
+    :link="route('dashboard')"
+    :active="request()->routeIs('dashboard')"
+/>
+```
+Livewire link without navigate:
+```blade
+<x-tallui-menu-item
+    label="Users"
+    icon="users"
+    :link="route('users.index')"
+    :wire-navigate="false"
+/>
+```
+Button action:
+```blade
+<x-tallui-menu-item
+    label="Logout"
+    icon="log-out"
+    as-button
+    wire:click="logout"
+/>
+```
+Section title:
+```blade
+<x-tallui-menu-item separator section-title="Administration" />
+```
 ```blade
 <x-tallui-menu>
-    <li><a href="/profile">Profile</a></li>
-    <li><a href="/settings">Settings</a></li>
-    <li><hr class="my-1 border-base-200" /></li>
-    <li><a href="/logout">Logout</a></li>
+    <x-tallui-menu-item
+        label="Dashboard"
+        icon="o-home"
+        :link="route('dashboard')"
+        :active="request()->routeIs('dashboard')"
+    />
+    <x-tallui-menu-item separator section-title="Administration" />
+    <form method="POST" action="{{ route('logout') }}">
+        @csrf
+        <x-tallui-menu-item
+            label="Logout"
+            icon="o-arrow-right-on-rectangle"
+            as="button"
+            type="submit"
+        />
+    </form>
+
+    <x-tallui-menu-item separator />
+    <x-tallui-menu-item
+        label="GitHub"
+        icon="s-code-bracket"
+        :link="'https://github.com/tallui/tallui'"
+        target="_blank"
+    />
+
+    <x-tallui-menu-item>
+        <x-tallui-theme-toggle />
+    </x-tallui-menu-item>
+
 </x-tallui-menu>
 ```
 
