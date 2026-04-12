@@ -1,16 +1,13 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace Centrex\TallUi\Http\Controllers;
 
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
+use Illuminate\Database\Eloquent\{Builder, Model};
+use Illuminate\Http\{JsonResponse, Request};
 use Illuminate\Routing\Controller;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\{Cache, Schema};
 use InvalidArgumentException;
 
 class SelectSearchController extends Controller
@@ -21,7 +18,7 @@ class SelectSearchController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string'],
-            'q' => ['nullable', 'string', 'max:255'],
+            'q'    => ['nullable', 'string', 'max:255'],
         ]);
 
         $name = $validated['name'];
@@ -110,8 +107,8 @@ class SelectSearchController extends Controller
                         $orderBy,
                         $direction,
                         $limit,
-                    )
-                )
+                    ),
+                ),
             );
         }
 
@@ -126,7 +123,7 @@ class SelectSearchController extends Controller
                 $orderBy,
                 $direction,
                 $limit,
-            )
+            ),
         );
     }
 
@@ -144,23 +141,23 @@ class SelectSearchController extends Controller
         int $minSearchLength,
     ): string {
         return 'tallui:select:' . md5(json_encode([
-            'name' => $name,
-            'model' => $modelClass,
-            'label' => $labelColumn,
-            'value' => $valueColumn,
-            'scope' => $scope,
-            'query' => $query,
-            'search' => $searchColumns,
-            'order' => $orderBy,
-            'dir' => $direction,
-            'limit' => $limit,
+            'name'              => $name,
+            'model'             => $modelClass,
+            'label'             => $labelColumn,
+            'value'             => $valueColumn,
+            'scope'             => $scope,
+            'query'             => $query,
+            'search'            => $searchColumns,
+            'order'             => $orderBy,
+            'dir'               => $direction,
+            'limit'             => $limit,
             'min_search_length' => $minSearchLength,
         ], JSON_THROW_ON_ERROR));
     }
 
     /**
-     * @param class-string<Model> $modelClass
-     * @param array<int, string> $searchColumns
+     * @param  class-string<Model>  $modelClass
+     * @param  array<int, string>  $searchColumns
      * @return array<int, array{value:mixed,label:string}>
      */
     private function fetchResults(
