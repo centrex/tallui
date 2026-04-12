@@ -85,6 +85,7 @@ return [
             'order_by' => 'name',
             'order_direction' => 'asc',
             'limit' => 25,
+            'min_search_length' => 1,
         ],
     ],
 ];
