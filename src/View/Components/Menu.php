@@ -1,12 +1,11 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace Centrex\TallUi\View\Components;
 
 use Closure;
 use Illuminate\Contracts\View\View;
-use Illuminate\Support\Arr;
 use Illuminate\View\Component;
 
 class Menu extends Component
@@ -23,9 +22,9 @@ class Menu extends Component
         public string $color = '',
     ) {
         $this->sizeClass = match ($this->size) {
-            'xs' => 'menu-xs',
-            'sm' => 'menu-sm',
-            'lg' => 'menu-lg',
+            'xs'    => 'menu-xs',
+            'sm'    => 'menu-sm',
+            'lg'    => 'menu-lg',
             default => '',
         };
 
@@ -33,7 +32,7 @@ class Menu extends Component
     }
 
     /**
-     * @param array<int, array<string, mixed>> $items
+     * @param  array<int, array<string, mixed>>  $items
      * @return array<int, array<string, mixed>>
      */
     protected function normalizeItems(array $items): array
@@ -45,11 +44,11 @@ class Menu extends Component
                     ->filter(fn ($child) => is_array($child) && isset($child['label']))
                     ->map(function (array $child): array {
                         return [
-                            'label' => (string) $child['label'],
-                            'url' => $child['url'] ?? '#',
-                            'icon' => $child['icon'] ?? null,
-                            'active' => (bool) ($child['active'] ?? false),
-                            'badge' => $child['badge'] ?? null,
+                            'label'      => (string) $child['label'],
+                            'url'        => $child['url'] ?? '#',
+                            'icon'       => $child['icon'] ?? null,
+                            'active'     => (bool) ($child['active'] ?? false),
+                            'badge'      => $child['badge'] ?? null,
                             'attributes' => is_array($child['attributes'] ?? null) ? $child['attributes'] : [],
                         ];
                     })
@@ -59,13 +58,13 @@ class Menu extends Component
                 $hasActiveChild = collect($children)->contains(fn (array $child) => $child['active'] === true);
 
                 return [
-                    'label' => (string) $item['label'],
-                    'url' => $item['url'] ?? '#',
-                    'icon' => $item['icon'] ?? null,
-                    'active' => (bool) ($item['active'] ?? false),
-                    'badge' => $item['badge'] ?? null,
-                    'children' => $children,
-                    'open' => (bool) ($item['open'] ?? $hasActiveChild),
+                    'label'      => (string) $item['label'],
+                    'url'        => $item['url'] ?? '#',
+                    'icon'       => $item['icon'] ?? null,
+                    'active'     => (bool) ($item['active'] ?? false),
+                    'badge'      => $item['badge'] ?? null,
+                    'children'   => $children,
+                    'open'       => (bool) ($item['open'] ?? $hasActiveChild),
                     'attributes' => is_array($item['attributes'] ?? null) ? $item['attributes'] : [],
                 ];
             })
