@@ -21,14 +21,28 @@ class ThemeToggle extends Component
         return <<<'BLADE'
             <div
                 x-data="{
-                    theme: localStorage.getItem('theme') || '{{ $light }}',
-                    toggle() {
-                        this.theme = this.theme === '{{ $light }}' ? '{{ $dark }}' : '{{ $light }}';
-                        localStorage.setItem('theme', this.theme);
+                    theme: '{{ $light }}',
+                    mode: 'light',
+                    applyTheme() {
                         document.documentElement.setAttribute('data-theme', this.theme);
+                        document.documentElement.classList.toggle('dark', this.mode === 'dark');
+                    },
+                    toggle() {
+                        this.mode = this.mode === 'light' ? 'dark' : 'light';
+                        this.theme = this.mode === 'dark' ? '{{ $dark }}' : '{{ $light }}';
+                        localStorage.setItem('theme', this.theme);
+                        localStorage.setItem('theme-mode', this.mode);
+                        this.applyTheme();
                     },
                     init() {
-                        document.documentElement.setAttribute('data-theme', this.theme);
+                        const storedTheme = localStorage.getItem('theme');
+                        const storedMode = localStorage.getItem('theme-mode');
+
+                        this.theme = storedTheme || '{{ $light }}';
+                        this.mode = storedMode
+                            || (this.theme === '{{ $dark }}' ? 'dark' : 'light');
+
+                        this.applyTheme();
                     }
                 }"
                 x-init="init()"
