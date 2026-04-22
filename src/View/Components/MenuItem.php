@@ -28,7 +28,7 @@ class MenuItem extends Component
     ) {
         $this->resolvedBadgeType = match ($this->badgeType) {
             'neutral', 'primary', 'secondary', 'accent', 'info', 'success', 'warning', 'error' => $this->badgeType,
-            default => 'primary',
+            default                                                                            => 'primary',
         };
     }
 
