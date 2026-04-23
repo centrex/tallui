@@ -6,6 +6,8 @@ namespace Centrex\TallUi\View\Components\Form;
 
 use Closure;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 use Illuminate\View\Component;
 
 class Select extends Component
@@ -15,7 +17,7 @@ class Select extends Component
     /** @var array<int|string, string> */
     public array $options;
 
-    /** @var array<int, array{value:mixed,label:string}> */
+    /** @var array<int, array{value:mixed,label:string,sublabel:?string}> */
     public array $normalizedOptions;
 
     public bool $isAsyncSearch;
@@ -33,6 +35,7 @@ class Select extends Component
         public bool $searchable = false,
         public ?string $searchUrl = null,
         public ?string $searchName = null,
+        public array $searchSource = [],
         public bool $sort = true,
         public string $size = '',
         mixed $options = [],
@@ -61,7 +64,7 @@ class Select extends Component
 
     /**
      * @param  array<int|string, mixed>  $options
-     * @return array<int, array{value:mixed,label:string}>
+     * @return array<int, array{value:mixed,label:string,sublabel:?string}>
      */
     protected function normalizeOptions(array $options): array
     {
@@ -69,14 +72,28 @@ class Select extends Component
             ->map(function (mixed $label, mixed $value): array {
                 if (is_array($label) && array_key_exists('value', $label) && array_key_exists('label', $label)) {
                     return [
-                        'value' => $label['value'],
-                        'label' => (string) $label['label'],
+                        'value'    => $label['value'],
+                        'label'    => (string) $label['label'],
+                        'sublabel' => isset($label['sublabel']) && $label['sublabel'] !== ''
+                            ? (string) $label['sublabel']
+                            : null,
+                    ];
+                }
+
+                if (is_array($label) && array_key_exists('label', $label)) {
+                    return [
+                        'value'    => $value,
+                        'label'    => (string) $label['label'],
+                        'sublabel' => isset($label['sublabel']) && $label['sublabel'] !== ''
+                            ? (string) $label['sublabel']
+                            : null,
                     ];
                 }
 
                 return [
-                    'value' => $value,
-                    'label' => (string) $label,
+                    'value'    => $value,
+                    'label'    => (string) $label,
+                    'sublabel' => null,
                 ];
             })
             ->values()
@@ -91,6 +108,15 @@ class Select extends Component
 
         if (filled($this->searchName) && function_exists('route')) {
             return route('tallui.select-search', ['name' => $this->searchName]);
+        }
+
+        if ($this->searchSource !== [] && function_exists('route')) {
+            $token = Str::random(40);
+            $ttl = max(60, (int) config('tallui.forms.search_source_ttl', 1800));
+
+            Cache::put("tallui:select-source:{$token}", $this->searchSource, $ttl);
+
+            return route('tallui.select-search', ['source' => $token]);
         }
 
         return null;
@@ -145,7 +171,6 @@ class Select extends Component
                 @keydown.arrow-up.prevent="highlightPrevious()"
                 @keydown.enter.prevent="selectHighlighted()"
                 @keydown.escape="close()"
-                @click.outside="close()"
                 @if($placeholder) placeholder="{{ $placeholder }}" @endif
                 @if($disabled) disabled @endif
                 autocomplete="off"
@@ -162,40 +187,55 @@ class Select extends Component
                 @endforeach
             />
 
-            <ul
-                x-show="open && items.length > 0"
-                x-cloak
-                class="absolute z-50 mt-1 w-full bg-base-100 border border-base-300 rounded-box shadow-lg max-h-60 overflow-auto"
-            >
-                <template x-for="(item, index) in items" :key="String(item.value)">
-                    <li
-                        @click="selectItem(item)"
-                        @mouseenter="highlightedIndex = index"
-                        :class="{
-                            'bg-base-200': highlightedIndex === index,
-                            'font-medium': String(selected) === String(item.value)
-                        }"
-                        class="px-4 py-2 cursor-pointer text-sm"
-                        x-text="item.label"
-                    ></li>
-                </template>
-            </ul>
+            <template x-teleport="body">
+                <div
+                    x-ref="dropdownPanel"
+                    x-show="open"
+                    x-cloak
+                    @click.stop
+                    class="fixed z-[9999] bg-base-100 border border-base-300 rounded-box shadow-lg"
+                    :style="panelStyle"
+                    style="display:none"
+                >
+                    <ul
+                        x-show="items.length > 0"
+                        class="max-h-60 overflow-auto"
+                    >
+                        <template x-for="(item, index) in items" :key="String(item.value)">
+                            <li
+                                @click="selectItem(item)"
+                                @mouseenter="highlightedIndex = index"
+                                :class="{
+                                    'bg-base-200': highlightedIndex === index,
+                                    'font-medium': String(selected) === String(item.value)
+                                }"
+                                class="px-4 py-2 cursor-pointer"
+                            >
+                                <div class="text-sm leading-tight" x-text="item.label"></div>
+                                <div
+                                    x-show="item.sublabel"
+                                    class="mt-0.5 text-xs leading-tight text-base-content/60"
+                                    x-text="item.sublabel"
+                                ></div>
+                            </li>
+                        </template>
+                    </ul>
 
-            <div
-                x-show="open && !loading && items.length === 0 && search.length > 0"
-                x-cloak
-                class="absolute z-50 mt-1 w-full bg-base-100 border border-base-300 rounded-box shadow-lg px-4 py-2 text-sm text-base-content/70"
-            >
-                No results found.
-            </div>
+                    <div
+                        x-show="!loading && items.length === 0 && search.length > 0"
+                        class="px-4 py-2 text-sm text-base-content/70"
+                    >
+                        No results found.
+                    </div>
 
-            <div
-                x-show="open && loading"
-                x-cloak
-                class="absolute z-50 mt-1 w-full bg-base-100 border border-base-300 rounded-box shadow-lg px-4 py-2 text-sm text-base-content/70"
-            >
-                Searching...
-            </div>
+                    <div
+                        x-show="loading"
+                        class="px-4 py-2 text-sm text-base-content/70"
+                    >
+                        Searching...
+                    </div>
+                </div>
+            </template>
         </div>
 
         <script>
@@ -207,7 +247,9 @@ class Select extends Component
                     selected: config.initialValue ?? '',
                     items: Array.isArray(config.initialItems) ? config.initialItems : [],
                     allItems: Array.isArray(config.initialItems) ? config.initialItems : [],
+                    selectedLabel: '',
                     highlightedIndex: -1,
+                    panelStyle: 'display:none',
                     placeholder: config.placeholder ?? '',
                     searchUrl: config.searchUrl ?? null,
                     asyncMode: Boolean(config.asyncMode),
@@ -216,6 +258,16 @@ class Select extends Component
 
                     init() {
                         this.syncLabelFromSelected();
+                        this.updatePanelPosition();
+
+                        const reposition = () => this.updatePanelPosition();
+
+                        window.addEventListener('resize', reposition);
+                        window.addEventListener('scroll', reposition, true);
+
+                        document.addEventListener('mousedown', (event) => {
+                            this.handleDocumentClick(event);
+                        });
                     },
 
                     handleFocus() {
@@ -224,6 +276,7 @@ class Select extends Component
                         }
 
                         this.open = true;
+                        this.updatePanelPosition();
 
                         if (this.asyncMode) {
                             this.handleSearch();
@@ -241,6 +294,7 @@ class Select extends Component
 
                         this.open = true;
                         this.highlightedIndex = -1;
+                        this.updatePanelPosition();
 
                         if (!this.asyncMode || !this.searchUrl) {
                             this.items = this.filteredLocalItems();
@@ -267,14 +321,14 @@ class Select extends Component
                             }
 
                             const payload = await response.json();
+                            const normalizedItems = Array.isArray(payload)
+                                ? this.normalizeItems(payload)
+                                : Array.isArray(payload?.data)
+                                    ? this.normalizeItems(payload.data)
+                                    : [];
 
-                            if (Array.isArray(payload)) {
-                                this.items = this.normalizeItems(payload);
-                            } else if (Array.isArray(payload?.data)) {
-                                this.items = this.normalizeItems(payload.data);
-                            } else {
-                                this.items = [];
-                            }
+                            this.items = normalizedItems;
+                            this.allItems = this.mergeItems(this.allItems, normalizedItems);
 
                             this.highlightedIndex = this.items.length > 0 ? 0 : -1;
                         } catch (error) {
@@ -303,12 +357,52 @@ class Select extends Component
                             .map(item => ({
                                 value: Object.prototype.hasOwnProperty.call(item, 'value') ? item.value : '',
                                 label: Object.prototype.hasOwnProperty.call(item, 'label') ? String(item.label) : '',
+                                sublabel: Object.prototype.hasOwnProperty.call(item, 'sublabel') && item.sublabel !== null && item.sublabel !== ''
+                                    ? String(item.sublabel)
+                                    : null,
                             }))
                             .filter(item => item.label !== '');
                     },
 
+                    mergeItems(...itemSets) {
+                        const mergedItems = [];
+                        const seenValues = new Set();
+
+                        itemSets
+                            .flat()
+                            .forEach((item) => {
+                                if (!item || typeof item !== 'object') {
+                                    return;
+                                }
+
+                                const normalizedItem = {
+                                    value: Object.prototype.hasOwnProperty.call(item, 'value') ? item.value : '',
+                                    label: Object.prototype.hasOwnProperty.call(item, 'label') ? String(item.label) : '',
+                                    sublabel: Object.prototype.hasOwnProperty.call(item, 'sublabel') && item.sublabel !== null && item.sublabel !== ''
+                                        ? String(item.sublabel)
+                                        : null,
+                                };
+
+                                if (normalizedItem.label === '') {
+                                    return;
+                                }
+
+                                const itemKey = String(normalizedItem.value);
+
+                                if (seenValues.has(itemKey)) {
+                                    return;
+                                }
+
+                                seenValues.add(itemKey);
+                                mergedItems.push(normalizedItem);
+                            });
+
+                        return mergedItems;
+                    },
+
                     syncLabelFromSelected() {
                         if (this.selected === null || this.selected === undefined || this.selected === '') {
+                            this.selectedLabel = '';
                             this.search = '';
                             return;
                         }
@@ -317,11 +411,17 @@ class Select extends Component
                             item => String(item.value) === String(this.selected)
                         );
 
-                        this.search = selectedItem ? selectedItem.label : '';
+                        if (selectedItem) {
+                            this.selectedLabel = selectedItem.label;
+                        }
+
+                        this.search = this.selectedLabel;
                     },
 
                     selectItem(item) {
+                        this.allItems = this.mergeItems([item], this.allItems);
                         this.selected = item.value;
+                        this.selectedLabel = item.label;
                         this.search = item.label;
                         this.open = false;
                         this.highlightedIndex = -1;
@@ -373,6 +473,39 @@ class Select extends Component
                         this.highlightedIndex = -1;
                         this.syncLabelFromSelected();
                     },
+
+                    handleDocumentClick(event) {
+                        if (!this.open) {
+                            return;
+                        }
+
+                        const input = this.$refs.textInput;
+                        const panel = this.$refs.dropdownPanel;
+                        const target = event.target;
+
+                        if (input?.contains(target) || panel?.contains(target)) {
+                            return;
+                        }
+
+                        this.close();
+                    },
+
+                    updatePanelPosition() {
+                        if (!this.$refs.textInput) {
+                            this.panelStyle = 'display:none';
+                            return;
+                        }
+
+                        const rect = this.$refs.textInput.getBoundingClientRect();
+                        const spacing = 4;
+
+                        this.panelStyle = [
+                            'display:block',
+                            'left:' + rect.left + 'px',
+                            'top:' + (rect.bottom + spacing) + 'px',
+                            'width:' + rect.width + 'px',
+                        ].join(';');
+                    },
                 };
             }
         </script>
@@ -396,7 +529,11 @@ class Select extends Component
 
             @foreach($options as $value => $optionLabel)
                 <option value="{{ $value }}" @selected((string) $currentValue === (string) $value)>
-                    {{ $optionLabel }}
+                    @if(is_array($optionLabel) && array_key_exists('label', $optionLabel))
+                        {{ $optionLabel['label'] }}@if(filled($optionLabel['sublabel'] ?? null)) - {{ $optionLabel['sublabel'] }} @endif
+                    @else
+                        {{ $optionLabel }}
+                    @endif
                 </option>
             @endforeach
 

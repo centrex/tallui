@@ -619,12 +619,34 @@ Selectable image picker with lightbox and form submission support. Double-click 
 
 If `searchable` is enabled without `search-name` or `search-url`, the component filters the provided options in the browser. If `searchable` is combined with `search-name` or `search-url`, it performs async lookups instead.
 
+You can also enqueue a source definition directly on the component. TallUI stores that definition temporarily in cache and the async endpoint reads it back using a signed token-style lookup key.
+
+```blade
+<x-tallui-select
+    name="customer_id"
+    label="Customer"
+    searchable
+    :search-source="[
+        'model' => App\Models\Customer::class,
+        'label' => 'name',
+        'sublabel' => 'email',
+        'value' => 'id',
+        'search_columns' => ['name', 'email', 'phone'],
+        'order_by' => 'name',
+        'order_direction' => 'asc',
+        'limit' => 25,
+    ]"
+    wire:model="customer_id"
+/>
+```
+
 | Prop | Default | Description |
 |---|---|---|
-| `options` | `[]` | Flat associative array or `[{value, label}]` list |
+| `options` | `[]` | Flat associative array or `[{value, label, sublabel?}]` list |
 | `searchable` | `false` | Enables search mode |
 | `search-name` | `null` | Registry key for the built-in async search route |
 | `search-url` | `null` | Fully custom async search endpoint |
+| `search-source` | `[]` | Inline async source definition stored temporarily in cache |
 | `sort` | `true` | Sort static options by label |
 | `placeholder` | `null` | Placeholder/empty option label |
 | `required` | `false` | Marks the field as required |
@@ -639,6 +661,7 @@ Register searchable models in `config/tallui.php`:
     'customer' => [
         'model' => App\Models\Customer::class,
         'label' => 'name',
+        'sublabel' => 'email',
         'value' => 'id',
         'search_columns' => ['name', 'email', 'phone'],
         'order_by' => 'name',
@@ -647,6 +670,8 @@ Register searchable models in `config/tallui.php`:
     ],
 ],
 ```
+
+`search_source_ttl` controls how long inline `search-source` definitions stay available in cache.
 
 ```blade
 <x-tallui-select
@@ -662,6 +687,7 @@ Register searchable models in `config/tallui.php`:
 |---|---|
 | `model` | Eloquent model class used for lookups |
 | `label` | Column used for the displayed text |
+| `sublabel` | Optional secondary column shown below the main label |
 | `value` | Column returned as the selected value |
 | `search_columns` | Columns searched by the async endpoint |
 | `order_by` | Default ordering column |

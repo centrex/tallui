@@ -54,7 +54,7 @@ class Tab extends Component
                         x-transition:enter-end="opacity-100"
                         class="py-4"
                     >
-                        {{ $$tab['id'] ?? '' }}
+                        {{ ${$tab['id']} ?? '' }}
                     </div>
                 @endforeach
 

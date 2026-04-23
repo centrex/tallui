@@ -17,26 +17,24 @@ class SelectSearchController extends Controller
     public function __invoke(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'name' => ['required', 'string'],
-            'q'    => ['nullable', 'string', 'max:255'],
+            'name'   => ['nullable', 'required_without:source', 'string'],
+            'source' => ['nullable', 'required_without:name', 'string'],
+            'q'      => ['nullable', 'string', 'max:255'],
         ]);
 
-        $name = $validated['name'];
+        $sourceKey = (string) ($validated['name'] ?? $validated['source']);
         $term = trim((string) ($validated['q'] ?? ''));
         $normalizedTerm = mb_strtolower($term);
 
-        /** @var array<string, array<string, mixed>> $allowList */
-        $allowList = config('tallui.forms.searchable_models', []);
+        $config = $this->resolveSourceConfig($validated);
 
-        if (!array_key_exists($name, $allowList)) {
+        if ($config === []) {
             return response()->json([], 403);
         }
 
-        /** @var array<string, mixed> $config */
-        $config = $allowList[$name];
-
         $modelClass = (string) ($config['model'] ?? '');
         $labelColumn = (string) ($config['label'] ?? 'name');
+        $sublabelColumn = isset($config['sublabel']) ? (string) $config['sublabel'] : null;
         $valueColumn = (string) ($config['value'] ?? 'id');
         $scope = isset($config['scope']) ? (string) $config['scope'] : null;
         $searchColumns = array_values($config['search_columns'] ?? [$labelColumn]);
@@ -55,6 +53,9 @@ class SelectSearchController extends Controller
 
         try {
             $labelColumn = $this->assertSafeColumn($table, $labelColumn);
+            $sublabelColumn = $sublabelColumn !== null && $sublabelColumn !== ''
+                ? $this->assertSafeColumn($table, $sublabelColumn)
+                : null;
             $valueColumn = $this->assertSafeColumn($table, $valueColumn);
             $orderBy = $this->assertSafeColumn($table, $orderBy);
 
@@ -80,9 +81,10 @@ class SelectSearchController extends Controller
 
         if ($shouldCache) {
             $cacheKey = $this->buildCacheKey(
-                $name,
+                $sourceKey,
                 $modelClass,
                 $labelColumn,
+                $sublabelColumn,
                 $valueColumn,
                 $scope,
                 $normalizedTerm,
@@ -100,6 +102,7 @@ class SelectSearchController extends Controller
                     fn (): array => $this->fetchResults(
                         $modelClass,
                         $labelColumn,
+                        $sublabelColumn,
                         $valueColumn,
                         $scope,
                         $normalizedTerm,
@@ -116,6 +119,7 @@ class SelectSearchController extends Controller
             $this->fetchResults(
                 $modelClass,
                 $labelColumn,
+                $sublabelColumn,
                 $valueColumn,
                 $scope,
                 $normalizedTerm,
@@ -127,10 +131,30 @@ class SelectSearchController extends Controller
         );
     }
 
+    /**
+     * @param  array{name?:string,source?:string}  $validated
+     * @return array<string, mixed>
+     */
+    private function resolveSourceConfig(array $validated): array
+    {
+        if (isset($validated['source'])) {
+            $config = Cache::get('tallui:select-source:' . $validated['source']);
+
+            return is_array($config) ? $config : [];
+        }
+
+        /** @var array<string, array<string, mixed>> $allowList */
+        $allowList = config('tallui.forms.searchable_models', []);
+        $name = (string) ($validated['name'] ?? '');
+
+        return $allowList[$name] ?? [];
+    }
+
     private function buildCacheKey(
         string $name,
         string $modelClass,
         string $labelColumn,
+        ?string $sublabelColumn,
         string $valueColumn,
         ?string $scope,
         string $query,
@@ -144,6 +168,7 @@ class SelectSearchController extends Controller
             'name'              => $name,
             'model'             => $modelClass,
             'label'             => $labelColumn,
+            'sublabel'          => $sublabelColumn,
             'value'             => $valueColumn,
             'scope'             => $scope,
             'query'             => $query,
@@ -158,11 +183,12 @@ class SelectSearchController extends Controller
     /**
      * @param  class-string<Model>  $modelClass
      * @param  array<int, string>  $searchColumns
-     * @return array<int, array{value:mixed,label:string}>
+     * @return array<int, array{value:mixed,label:string,sublabel:?string}>
      */
     private function fetchResults(
         string $modelClass,
         string $labelColumn,
+        ?string $sublabelColumn,
         string $valueColumn,
         ?string $scope,
         string $query,
@@ -196,15 +222,20 @@ class SelectSearchController extends Controller
             });
         }
 
+        $columns = array_values(array_filter([$valueColumn, $labelColumn, $sublabelColumn]));
+
         $results = $builder
             ->orderBy($orderBy, $direction)
             ->limit($limit)
-            ->get([$valueColumn, $labelColumn]);
+            ->get($columns);
 
         return $results
             ->map(fn (Model $row): array => [
-                'value' => $row->getAttribute($valueColumn),
-                'label' => (string) $row->getAttribute($labelColumn),
+                'value'    => $row->getAttribute($valueColumn),
+                'label'    => (string) $row->getAttribute($labelColumn),
+                'sublabel' => $sublabelColumn !== null
+                    ? (string) $row->getAttribute($sublabelColumn)
+                    : null,
             ])
             ->values()
             ->all();

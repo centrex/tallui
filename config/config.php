@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types = 1);
+
 /*
  * You can place your custom package configuration in here.
  */
@@ -61,7 +63,18 @@ return [
      */
     'forms' => [
         'size'              => 'md',
-        'searchable_models' => [],
+        'search_source_ttl' => 1800,
+        'searchable_models' => [
+            'user' => [
+                'model'           => App\Models\User::class,
+                'label'           => 'name',
+                'value'           => 'id',
+                'search_columns'  => ['name', 'email'],
+                'order_by'        => 'name',
+                'order_direction' => 'asc',
+                'limit'           => 25,
+            ],
+        ],
     ],
 
     /**
@@ -70,23 +83,6 @@ return [
     'components' => [
         'spotlight' => [
             'class' => 'App\Support\Spotlight',
-        ],
-    ],
-
-    /**
-     * Searchable models for the Select component.
-     */
-    'forms' => [
-        'searchable_models' => [
-            'user' => [
-                'model' => App\Models\User::class,
-                'label' => 'name',
-                'value' => 'id',
-                'search_columns' => ['name', 'email'],
-                'order_by' => 'name',
-                'order_direction' => 'asc',
-                'limit' => 25,
-            ],
         ],
     ],
 ];

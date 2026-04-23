@@ -115,7 +115,7 @@ Same props as `Input` plus `rows` (default `4`).
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `options` | `array` | `[]` | Associative `[value => label]` array |
+| `options` | `array` | `[]` | Associative `[value => label]` array or `[{value, label, sublabel?}]` list |
 | `placeholder` | `?string` | `null` | Disabled first option as placeholder |
 | `searchable` | `bool` | `false` | Enable async search mode |
 | `searchUrl` | `?string` | auto | Override the search endpoint URL |
@@ -135,13 +135,15 @@ For large datasets, enable `searchable` mode. The component renders an Alpine.js
         'country' => [
             'model'  => \App\Models\Country::class,
             'label'  => 'name',    // column shown in the dropdown
+            'sublabel' => 'code',  // optional secondary line shown below the label
             'value'  => 'id',      // value stored in the hidden input
             'scope'  => 'active',  // optional Eloquent scope method
         ],
         'user' => [
-            'model' => \App\Models\User::class,
-            'label' => 'name',
-            'value' => 'id',
+            'model'    => \App\Models\User::class,
+            'label'    => 'name',
+            'sublabel' => 'email',
+            'value'    => 'id',
         ],
     ],
 ],
@@ -160,6 +162,8 @@ For large datasets, enable `searchable` mode. The component renders an Alpine.js
 ```
 
 > Only models listed in `searchable_models` can be queried. Any other name returns `403`.
+>
+> Async endpoints may also return `[{ value, label, sublabel? }]`. Searchable TallUI selects render `sublabel` as a muted second line. Native non-searchable `<select>` elements fall back to `Label - Sublabel` text because standard HTML options do not support multi-line markup.
 
 ---
 

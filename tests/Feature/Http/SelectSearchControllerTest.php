@@ -3,6 +3,7 @@
 declare(strict_types = 1);
 
 use Centrex\TallUi\Tests\Fixtures\Models\User;
+use Illuminate\Support\Facades\Cache;
 
 beforeEach(function (): void {
     User::create(['name' => 'Alice Smith',  'email' => 'alice@test.com']);
@@ -65,6 +66,19 @@ it('returns results with value and label keys', function (): void {
         ->and($response[0]['label'])->toBe('Alice Smith');
 });
 
+it('returns results with an optional sublabel key when configured', function (): void {
+    config(['tallui.forms.searchable_models' => [
+        'user' => ['model' => User::class, 'label' => 'name', 'sublabel' => 'email', 'value' => 'id'],
+    ]]);
+
+    $response = $this->getJson(route('tallui.select-search', ['name' => 'user', 'q' => 'alice']))
+        ->assertOk()
+        ->json();
+
+    expect($response[0])->toHaveKeys(['value', 'label', 'sublabel'])
+        ->and($response[0]['sublabel'])->toBe('alice@test.com');
+});
+
 it('is case-insensitive for the search query', function (): void {
     config(['tallui.forms.searchable_models' => [
         'user' => ['model' => User::class, 'label' => 'name', 'value' => 'id'],
@@ -73,6 +87,21 @@ it('is case-insensitive for the search query', function (): void {
     $this->getJson(route('tallui.select-search', ['name' => 'user', 'q' => 'ALICE']))
         ->assertOk()
         ->assertJsonFragment(['label' => 'Alice Smith']);
+});
+
+it('returns matching results for a component-enqueued source', function (): void {
+    Cache::put('tallui:select-source:inline-users', [
+        'model'          => User::class,
+        'label'          => 'name',
+        'sublabel'       => 'email',
+        'value'          => 'id',
+        'search_columns' => ['name', 'email'],
+    ], 300);
+
+    $this->getJson(route('tallui.select-search', ['source' => 'inline-users', 'q' => 'alice']))
+        ->assertOk()
+        ->assertJsonCount(1)
+        ->assertJsonFragment(['label' => 'Alice Smith', 'sublabel' => 'alice@test.com']);
 });
 
 it('supports searching across configured columns and orders results', function (): void {
@@ -99,4 +128,9 @@ it('supports searching across configured columns and orders results', function (
 it('requires the name parameter', function (): void {
     $this->getJson(route('tallui.select-search', ['q' => 'test']))
         ->assertStatus(422);
+});
+
+it('returns 403 when a component-enqueued source is missing', function (): void {
+    $this->getJson(route('tallui.select-search', ['source' => 'missing-source', 'q' => 'alice']))
+        ->assertStatus(403);
 });
