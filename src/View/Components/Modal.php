@@ -39,13 +39,13 @@ class Modal extends Component
             --}}
             <div
                 x-data="{ open: false }"
-                @open-modal.window="if ($event.detail === '{{ $id }}') open = true"
-                @close-modal.window="if ($event.detail === '{{ $id }}') open = false"
+                @open-modal.window="if ($event.detail === '{{ $id }}' || $event.detail?.id === '{{ $id }}') open = true"
+                @close-modal.window="if ($event.detail === '{{ $id }}' || $event.detail?.id === '{{ $id }}') open = false"
                 @keydown.escape.window="if (open && {{ $closeable ? 'true' : 'false' }}) open = false"
             >
                 {{-- Optional inline trigger slot --}}
                 @if(isset($trigger))
-                    <span @click="open = true">{{ $trigger }}</span>
+                    <span @click="$dispatch('open-modal', '{{ $id }}')">{{ $trigger }}</span>
                 @endif
 
                 {{-- Backdrop --}}
@@ -58,7 +58,6 @@ class Modal extends Component
                     x-transition:leave-start="opacity-100"
                     x-transition:leave-end="opacity-0"
                     class="fixed inset-0 z-[9990] bg-black/50"
-                    @if($closeable) @click="open = false" @endif
                     style="display:none"
                 ></div>
 
@@ -74,11 +73,12 @@ class Modal extends Component
                     @class([
                         'fixed inset-0 z-[9991] flex items-center justify-center p-4',
                     ])
+                    @if($closeable) @click.self="open = false" @endif
                     style="display:none"
                 >
                     <div
                         @class([
-                            'bg-base-100 rounded-2xl shadow-2xl w-full flex flex-col max-h-[90vh]',
+                            'bg-white text-gray-900 dark:bg-zinc-900 dark:text-zinc-100 rounded-2xl shadow-2xl w-full flex flex-col max-h-[90vh]',
                             'max-w-sm'  => $size === 'sm',
                             'max-w-lg'  => $size === 'md',
                             'max-w-2xl' => $size === 'lg',
