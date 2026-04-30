@@ -120,15 +120,15 @@ class TallUiServiceProvider extends ServiceProvider
             'empty-state'   => View\Components\EmptyState::class,
             'notification'  => View\Components\Notification::class,
             // New components
-            'sidebar'       => View\Components\Sidebar::class,
-            'dialog'        => View\Components\Dialog::class,
-            'collapse'      => View\Components\Collapse::class,
-            'header'        => View\Components\Header::class,
-            'image-library' => View\Components\ImageLibrary::class,
-            'choices'          => View\Components\Form\Choices::class,
-            'file-upload'      => View\Components\Form\FileUpload::class,
-            'pin'              => View\Components\Form\Pin::class,
-            'password-input'   => View\Components\Form\PasswordInput::class,
+            'sidebar'        => View\Components\Sidebar::class,
+            'dialog'         => View\Components\Dialog::class,
+            'collapse'       => View\Components\Collapse::class,
+            'header'         => View\Components\Header::class,
+            'image-library'  => View\Components\ImageLibrary::class,
+            'choices'        => View\Components\Form\Choices::class,
+            'file-upload'    => View\Components\Form\FileUpload::class,
+            'pin'            => View\Components\Form\Pin::class,
+            'password-input' => View\Components\Form\PasswordInput::class,
         ];
 
         foreach ($components as $name => $class) {
