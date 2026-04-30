@@ -61,6 +61,7 @@ class TallUiServiceProvider extends ServiceProvider
         Blade::component('tallui-card', View\Components\Card::class);
         Blade::component('tallui-icon', View\Components\Icon::class);
         Blade::component('tallui-input', View\Components\Form\Input::class);
+        Blade::component('tallui-password-input', View\Components\Form\PasswordInput::class);
         Blade::component('tallui-list-item', View\Components\ListItem::class);
         Blade::component('tallui-modal', View\Components\Modal::class);
         Blade::component('tallui-menu', View\Components\Menu::class);
@@ -124,9 +125,10 @@ class TallUiServiceProvider extends ServiceProvider
             'collapse'      => View\Components\Collapse::class,
             'header'        => View\Components\Header::class,
             'image-library' => View\Components\ImageLibrary::class,
-            'choices'       => View\Components\Form\Choices::class,
-            'file-upload'   => View\Components\Form\FileUpload::class,
-            'pin'           => View\Components\Form\Pin::class,
+            'choices'          => View\Components\Form\Choices::class,
+            'file-upload'      => View\Components\Form\FileUpload::class,
+            'pin'              => View\Components\Form\Pin::class,
+            'password-input'   => View\Components\Form\PasswordInput::class,
         ];
 
         foreach ($components as $name => $class) {

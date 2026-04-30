@@ -1,7 +1,17 @@
 <div
-    x-data="{ open: false }"
-    @open-dialog.window="if ($event.detail === '{{ $id }}') open = true"
-    @close-dialog.window="if ($event.detail === '{{ $id }}') open = false"
+    x-data="{
+        open: false,
+        dialogId: @js($id),
+        matchesDialog(event) {
+            const detail = event.detail;
+
+            return detail === this.dialogId
+                || (Array.isArray(detail) && detail[0] === this.dialogId)
+                || (detail && detail.id === this.dialogId);
+        },
+    }"
+    @open-dialog.window="if (matchesDialog($event)) open = true"
+    @close-dialog.window="if (matchesDialog($event)) open = false"
     @keydown.escape.window="if (open && {{ $closeable ? 'true' : 'false' }}) open = false"
 >
     {{-- Optional inline trigger --}}

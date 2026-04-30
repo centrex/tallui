@@ -34,6 +34,12 @@ class FileUpload extends Component
     public function render(): View|Closure|string
     {
         return <<<'BLADE'
+            @php
+                $inputAttributes = $attributes
+                    ->whereDoesntStartWith('class')
+                    ->merge([]);
+            @endphp
+
             <div
                 x-data="{
                     files: [],
@@ -44,6 +50,8 @@ class FileUpload extends Component
 
                     handleFiles(newFiles) {
                         this.errors = [];
+                        this.files = {{ $multiple ? 'this.files' : '[]' }};
+
                         Array.from(newFiles).forEach(file => {
                             if (this.maxBytes && file.size > this.maxBytes) {
                                 this.errors.push(`${file.name} exceeds {{ $maxSizeMb }}MB limit`);
@@ -62,7 +70,14 @@ class FileUpload extends Component
                             reader.readAsDataURL(file);
                         });
                     },
-                    remove(i) { this.files.splice(i, 1); },
+                    remove(i) {
+                        this.files.splice(i, 1);
+
+                        if (this.files.length === 0 && this.$refs.fileInput) {
+                            this.$refs.fileInput.value = '';
+                            this.$refs.fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+                        }
+                    },
                     formatSize(bytes) {
                         if (bytes < 1024) return bytes + ' B';
                         if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
@@ -106,6 +121,7 @@ class FileUpload extends Component
                         @if($multiple) multiple @endif
                         @if($accept) accept="{{ $accept }}" @endif
                         @if($required) required @endif
+                        {{ $inputAttributes }}
                         class="sr-only"
                     />
                 </div>
