@@ -53,7 +53,16 @@ class Select extends Component
         $this->options = is_array($options) ? $options : [];
 
         if ($this->sort) {
-            asort($this->options, SORT_NATURAL | SORT_FLAG_CASE);
+            uasort($this->options, function (mixed $left, mixed $right): int {
+                $leftLabel = is_array($left)
+                    ? (string) ($left['label'] ?? $left['value'] ?? '')
+                    : (string) $left;
+                $rightLabel = is_array($right)
+                    ? (string) ($right['label'] ?? $right['value'] ?? '')
+                    : (string) $right;
+
+                return strnatcasecmp($leftLabel, $rightLabel);
+            });
         }
 
         $this->normalizedOptions = $this->normalizeOptions($this->options);
@@ -128,8 +137,8 @@ class Select extends Component
 <div @class(['form-control w-full', 'opacity-60 pointer-events-none' => $disabled])>
     @php
         $inputId = $name !== '' ? $name : uniqid('select_', false);
-        $wireModelAttribute = collect($attributes->getAttributes())
-            ->filter(fn ($value, $key) => str_starts_with((string) $key, 'wire:model'))
+        $hiddenInputAttributes = collect($attributes->getAttributes())
+            ->filter(fn ($value, $key) => str_starts_with((string) $key, 'wire:') || str_starts_with((string) $key, 'x-') || str_starts_with((string) $key, '@'))
             ->mapWithKeys(fn ($value, $key) => [$key => $value]);
 
         $currentValue = old($name, $attributes->get('value'));
@@ -182,7 +191,7 @@ class Select extends Component
                 type="hidden"
                 name="{{ $name }}"
                 x-model="selected"
-                @foreach($wireModelAttribute as $wireKey => $wireValue)
+                @foreach($hiddenInputAttributes as $wireKey => $wireValue)
                     {{ $wireKey }}="{{ $wireValue }}"
                 @endforeach
             />
@@ -199,6 +208,8 @@ class Select extends Component
                 >
                     <ul
                         x-show="items.length > 0"
+                        x-ref="itemsList"
+                        @scroll="handleListScroll()"
                         class="max-h-60 overflow-auto"
                     >
                         <template x-for="(item, index) in items" :key="String(item.value)">
@@ -234,6 +245,13 @@ class Select extends Component
                     >
                         Searching...
                     </div>
+
+                    <div
+                        x-show="loadingMore"
+                        class="px-4 py-2 text-sm text-base-content/70"
+                    >
+                        Loading more...
+                    </div>
                 </div>
             </template>
         </div>
@@ -241,8 +259,10 @@ class Select extends Component
         <script>
             function selectComponent(config) {
                 return {
+                    instanceId: 'select-' + Math.random().toString(36).slice(2),
                     open: false,
                     loading: false,
+                    loadingMore: false,
                     search: '',
                     selected: config.initialValue ?? '',
                     items: Array.isArray(config.initialItems) ? config.initialItems : [],
@@ -255,15 +275,28 @@ class Select extends Component
                     asyncMode: Boolean(config.asyncMode),
                     disabled: Boolean(config.disabled),
                     required: Boolean(config.required),
+                    page: 1,
+                    hasMore: true,
+                    lastSearch: '',
 
                     init() {
                         this.syncLabelFromSelected();
                         this.updatePanelPosition();
 
-                        const reposition = () => this.updatePanelPosition();
+                        const reposition = () => {
+                            if (this.open) {
+                                this.updatePanelPosition();
+                            }
+                        };
 
                         window.addEventListener('resize', reposition);
                         window.addEventListener('scroll', reposition, true);
+
+                        window.addEventListener('tallui-select-opened', (event) => {
+                            if (event.detail?.instanceId !== this.instanceId) {
+                                this.close();
+                            }
+                        });
 
                         document.addEventListener('mousedown', (event) => {
                             this.handleDocumentClick(event);
@@ -276,6 +309,7 @@ class Select extends Component
                         }
 
                         this.open = true;
+                        window.dispatchEvent(new CustomEvent('tallui-select-opened', { detail: { instanceId: this.instanceId } }));
                         this.updatePanelPosition();
 
                         if (this.asyncMode) {
@@ -293,6 +327,7 @@ class Select extends Component
                         }
 
                         this.open = true;
+                        window.dispatchEvent(new CustomEvent('tallui-select-opened', { detail: { instanceId: this.instanceId } }));
                         this.highlightedIndex = -1;
                         this.updatePanelPosition();
 
@@ -303,10 +338,14 @@ class Select extends Component
                         }
 
                         this.loading = true;
+                        this.page = 1;
+                        this.hasMore = true;
+                        this.lastSearch = this.search ?? '';
 
                         try {
                             const url = new URL(this.searchUrl, window.location.origin);
                             url.searchParams.set('q', this.search ?? '');
+                            url.searchParams.set('page', String(this.page));
 
                             const response = await fetch(url.toString(), {
                                 headers: {
@@ -329,6 +368,9 @@ class Select extends Component
 
                             this.items = normalizedItems;
                             this.allItems = this.mergeItems(this.allItems, normalizedItems);
+                            this.hasMore = Array.isArray(payload)
+                                ? normalizedItems.length > 0
+                                : Boolean(payload?.has_more);
 
                             this.highlightedIndex = this.items.length > 0 ? 0 : -1;
                         } catch (error) {
@@ -336,6 +378,67 @@ class Select extends Component
                             this.items = [];
                         } finally {
                             this.loading = false;
+                        }
+                    },
+
+                    async loadMore() {
+                        if (!this.asyncMode || !this.searchUrl || this.loading || this.loadingMore || !this.hasMore) {
+                            return;
+                        }
+
+                        this.loadingMore = true;
+
+                        try {
+                            const nextPage = this.page + 1;
+                            const url = new URL(this.searchUrl, window.location.origin);
+                            url.searchParams.set('q', this.lastSearch ?? this.search ?? '');
+                            url.searchParams.set('page', String(nextPage));
+
+                            const response = await fetch(url.toString(), {
+                                headers: {
+                                    'Accept': 'application/json',
+                                    'X-Requested-With': 'XMLHttpRequest',
+                                },
+                            });
+
+                            if (!response.ok) {
+                                this.hasMore = false;
+                                return;
+                            }
+
+                            const payload = await response.json();
+                            const normalizedItems = Array.isArray(payload)
+                                ? this.normalizeItems(payload)
+                                : Array.isArray(payload?.data)
+                                    ? this.normalizeItems(payload.data)
+                                    : [];
+
+                            this.items = this.mergeItems(this.items, normalizedItems);
+                            this.allItems = this.mergeItems(this.allItems, normalizedItems);
+                            this.page = nextPage;
+                            this.hasMore = Array.isArray(payload)
+                                ? normalizedItems.length > 0
+                                : Boolean(payload?.has_more);
+                        } catch (error) {
+                            console.error('Async select load more failed:', error);
+                            this.hasMore = false;
+                        } finally {
+                            this.loadingMore = false;
+                        }
+                    },
+
+                    handleListScroll() {
+                        if (!this.$refs.itemsList) {
+                            return;
+                        }
+
+                        const threshold = 32;
+                        const remaining = this.$refs.itemsList.scrollHeight
+                            - this.$refs.itemsList.scrollTop
+                            - this.$refs.itemsList.clientHeight;
+
+                        if (remaining <= threshold) {
+                            this.loadMore();
                         }
                     },
 
@@ -491,7 +594,7 @@ class Select extends Component
                     },
 
                     updatePanelPosition() {
-                        if (!this.$refs.textInput) {
+                        if (!this.open || !this.$refs.textInput) {
                             this.panelStyle = 'display:none';
                             return;
                         }
