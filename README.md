@@ -766,6 +766,7 @@ Drag-and-drop zone with client-side file size validation and image preview thumb
 <x-tallui-file-upload
     name="attachments"
     label="Attachments"
+    wire:model="attachments"
     :multiple="true"
     accept="image/*,.pdf"
     :max-size-mb="5"
@@ -781,7 +782,7 @@ Drag-and-drop zone with client-side file size validation and image preview thumb
 | `max-size-mb` | `10` | Client-side size limit per file |
 | `preview` | `true` | Show image thumbnails and file cards below zone |
 
-> Note: This is a pure client-side component. For server-side upload use Livewire's `wire:model` with the standard `<x-tallui-file>` input or Laravel's file storage.
+For Livewire uploads, pass `wire:model` directly to the component; it is forwarded to the underlying file input.
 
 ---
 

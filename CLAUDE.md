@@ -95,6 +95,7 @@ Features: URL-synced search/sort/page, per-page selector, row selection, CSV exp
 | `<x-tallui-choices>` | `View\Components\Form\Choices` | Multi-select with search and tag badges |
 | `<x-tallui-file-upload>` | `View\Components\Form\FileUpload` | Drag-and-drop zone with image previews |
 | `<x-tallui-pin>` | `View\Components\Form\Pin` | PIN / OTP input (auto-advance, paste, backspace) |
+| `<x-tallui-password-input>` | `View\Components\Form\PasswordInput` | Password field with show/hide toggle (Alpine.js) |
 
 ## Performance Blade Directives
 
