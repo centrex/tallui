@@ -256,6 +256,7 @@ class Select extends Component
             </template>
         </div>
 
+        @scriptonce('tallui-select-js')
         <script>
             function selectComponent(config) {
                 return {
@@ -612,6 +613,7 @@ class Select extends Component
                 };
             }
         </script>
+        @endscriptonce
     @else
         <select
             id="{{ $inputId }}"
