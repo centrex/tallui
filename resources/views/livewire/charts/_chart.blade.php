@@ -62,7 +62,10 @@
                 }
 
                 // --- MIXED: ensure every series has a `type` key ---
-                if (type === 'line' && Array.isArray(opts.series)) {
+                // Only applies when at least one series already declares a type (mixed chart
+                // disguised as chart.type='line'). Pure line charts have no per-series type.
+                const isMultiType = Array.isArray(opts.series) && opts.series.some(s => s && s.type);
+                if (type === 'line' && isMultiType) {
                     opts.series = opts.series.map(s =>
                         s && typeof s === 'object' && !s.type ? { ...s, type: 'bar' } : s
                     );

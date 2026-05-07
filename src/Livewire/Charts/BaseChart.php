@@ -151,11 +151,9 @@ abstract class BaseChart extends Component
         ]);
     }
 
-    public function updated($property): void
+    public function updated(string $property): void
     {
-        if (in_array($property, ['title', 'subtitle', 'theme', 'dataProvider'])) {
-            $this->dispatch('chart-updated', options: $this->buildOptions());
-        }
+        $this->dispatch('chart-updated', options: $this->buildOptions());
     }
 
     public function render(): View
