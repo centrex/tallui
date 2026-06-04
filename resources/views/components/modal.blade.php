@@ -1,0 +1,102 @@
+<div
+    x-data="{
+        open: false,
+        modalId: @js($id),
+        matchesModal(event) {
+            const detail = event.detail;
+            return detail === this.modalId
+                || (Array.isArray(detail) && detail[0] === this.modalId)
+                || (detail && detail.id === this.modalId);
+        },
+    }"
+    @open-modal.window="if (matchesModal($event)) open = true"
+    @close-modal.window="if (matchesModal($event)) open = false"
+    @keydown.escape.window="if (open && {{ $closeable ? 'true' : 'false' }}) open = false"
+>
+    {{-- Optional inline trigger --}}
+    @if(isset($trigger))
+        <span @click="$dispatch('open-modal', @js($id))">{{ $trigger }}</span>
+    @endif
+
+    {{-- Teleport to <body> so fixed positioning is never trapped inside a
+         parent stacking context (e.g. a sidebar with CSS transform). --}}
+    <template x-teleport="body">
+        <div>
+            {{-- Backdrop --}}
+            <div
+                x-show="open"
+                x-transition:enter="transition ease-out duration-200"
+                x-transition:enter-start="opacity-0"
+                x-transition:enter-end="opacity-100"
+                x-transition:leave="transition ease-in duration-150"
+                x-transition:leave-start="opacity-100"
+                x-transition:leave-end="opacity-0"
+                class="fixed inset-0 z-[9990] bg-black/50"
+                style="display:none"
+            ></div>
+
+            {{-- Modal panel --}}
+            <div
+                x-show="open"
+                x-transition:enter="transition ease-out duration-200"
+                x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+                x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                x-transition:leave="transition ease-in duration-150"
+                x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                x-transition:leave-end="opacity-0 scale-95 translate-y-2"
+                class="fixed inset-0 z-[9991] flex items-center justify-center p-4"
+                @if($closeable) @click.self="open = false" @endif
+                style="display:none"
+            >
+                <div
+                    @class([
+                        'bg-base-100 text-base-content rounded-2xl shadow-2xl w-full flex flex-col max-h-[90vh]',
+                        'max-w-sm'   => $size === 'sm',
+                        'max-w-lg'   => $size === 'md',
+                        'max-w-2xl'  => $size === 'lg',
+                        'max-w-4xl'  => $size === 'xl',
+                        'max-w-full h-full rounded-none' => $size === 'full',
+                    ])
+                    @click.stop
+                >
+                    {{-- Header --}}
+                    @if($title || $closeable || $icon)
+                        <div class="flex items-center justify-between px-6 py-4 border-b border-base-200 shrink-0">
+                            <div class="flex items-center gap-3">
+                                @if($icon)
+                                    <span class="{{ $iconColor }}">
+                                        <x-tallui-icon :name="$icon" class="w-5 h-5" />
+                                    </span>
+                                @endif
+                                @if($title)
+                                    <h3 class="font-semibold text-lg">{{ $title }}</h3>
+                                @endif
+                            </div>
+                            @if($closeable)
+                                <button
+                                    @click="open = false"
+                                    class="btn btn-ghost btn-sm btn-circle text-base-content/50 hover:text-base-content"
+                                    aria-label="Close"
+                                >
+                                    <x-tallui-icon name="o-x-mark" class="w-4 h-4" />
+                                </button>
+                            @endif
+                        </div>
+                    @endif
+
+                    {{-- Body --}}
+                    <div class="px-6 py-5 overflow-y-auto flex-1 text-sm">
+                        {{ $slot }}
+                    </div>
+
+                    {{-- Footer --}}
+                    @if(isset($footer))
+                        <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-base-200 shrink-0">
+                            {{ $footer }}
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </template>
+</div>
