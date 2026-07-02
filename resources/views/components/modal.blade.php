@@ -9,6 +9,7 @@
                 || (detail && detail.id === this.modalId);
         },
     }"
+    x-init="$watch('open', (value) => { if (!value) $dispatch('modal-closed', modalId) })"
     @open-modal.window="if (matchesModal($event)) open = true"
     @close-modal.window="if (matchesModal($event)) open = false"
     @keydown.escape.window="if (open && {{ $closeable ? 'true' : 'false' }}) open = false"
