@@ -210,7 +210,8 @@ class Select extends Component
                         x-show="items.length > 0"
                         x-ref="itemsList"
                         @scroll="handleListScroll()"
-                        class="max-h-60 overflow-auto"
+                        class="overflow-auto"
+                        :style="'max-height:' + listMaxHeight + 'px'"
                     >
                         <template x-for="(item, index) in items" :key="String(item.value)">
                             <li
@@ -270,6 +271,7 @@ class Select extends Component
                     selectedLabel: '',
                     highlightedIndex: -1,
                     panelStyle: 'display:none',
+                    listMaxHeight: 240,
                     placeholder: config.placeholder ?? '',
                     searchUrl: config.searchUrl ?? null,
                     asyncMode: Boolean(config.asyncMode),
@@ -601,11 +603,28 @@ class Select extends Component
 
                         const rect = this.$refs.textInput.getBoundingClientRect();
                         const spacing = 4;
+                        const preferredHeight = 240;
+
+                        const spaceBelow = window.innerHeight - rect.bottom - spacing;
+                        const spaceAbove = rect.top - spacing;
+
+                        // Flip upward whenever staying below would cramp the list short of its
+                        // preferred height AND the other side actually has more room to offer —
+                        // otherwise we'd anchor "below" out of habit and clamp to a tiny sliver
+                        // even when flipping up would show the full list.
+                        const openUpward = spaceBelow < preferredHeight && spaceAbove > spaceBelow;
+                        const availableSpace = Math.max(openUpward ? spaceAbove : spaceBelow, 0);
+
+                        this.listMaxHeight = Math.max(Math.min(availableSpace, preferredHeight), 0);
+
+                        const verticalStyle = openUpward
+                            ? 'bottom:' + (window.innerHeight - rect.top + spacing) + 'px'
+                            : 'top:' + (rect.bottom + spacing) + 'px';
 
                         this.panelStyle = [
                             'display:block',
+                            verticalStyle,
                             'left:' + rect.left + 'px',
-                            'top:' + (rect.bottom + spacing) + 'px',
                             'width:' + rect.width + 'px',
                         ].join(';');
                     },
