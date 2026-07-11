@@ -4,6 +4,8 @@ declare(strict_types = 1);
 
 namespace Centrex\TallUi\Tests;
 
+use BladeUI\Heroicons\BladeHeroiconsServiceProvider;
+use BladeUI\Icons\BladeIconsServiceProvider;
 use Centrex\TallUi\TallUiServiceProvider;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Livewire\LivewireServiceProvider;
@@ -24,6 +26,8 @@ class TestCase extends Orchestra
     {
         return [
             LivewireServiceProvider::class,
+            BladeIconsServiceProvider::class,
+            BladeHeroiconsServiceProvider::class,
             TallUiServiceProvider::class,
         ];
     }
@@ -40,5 +44,6 @@ class TestCase extends Orchestra
         config()->set('tallui.prefix', 'tallui');
         config()->set('cache.default', 'array');
         config()->set('cache.stores.array', ['driver' => 'array', 'serialize' => false]);
+        config()->set('app.key', 'base64:' . base64_encode(random_bytes(32)));
     }
 }

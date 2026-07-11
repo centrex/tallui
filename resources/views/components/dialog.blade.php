@@ -1,7 +1,8 @@
 <div
     x-data="{
         open: false,
-        dialogId: @js($id),
+        dialogId: @js($id ?? $uuid),
+        returnFocusEl: null,
         matchesDialog(event) {
             const detail = event.detail;
 
@@ -9,7 +10,38 @@
                 || (Array.isArray(detail) && detail[0] === this.dialogId)
                 || (detail && detail.id === this.dialogId);
         },
+        focusables() {
+            return [...(this.$refs.panel?.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex=\'-1\'])') ?? [])]
+                .filter((el) => !el.disabled && el.offsetParent !== null);
+        },
+        onOpen() {
+            this.returnFocusEl = document.activeElement;
+            this.$nextTick(() => this.focusables()[0]?.focus());
+        },
+        onClose() {
+            this.returnFocusEl?.focus?.();
+            this.returnFocusEl = null;
+        },
+        trapTab(event) {
+            const items = this.focusables();
+
+            if (!items.length) {
+                return;
+            }
+
+            const first = items[0];
+            const last = items[items.length - 1];
+
+            if (event.shiftKey && document.activeElement === first) {
+                event.preventDefault();
+                last.focus();
+            } else if (!event.shiftKey && document.activeElement === last) {
+                event.preventDefault();
+                first.focus();
+            }
+        },
     }"
+    x-effect="open ? onOpen() : onClose()"
     @open-dialog.window="if (matchesDialog($event)) open = true"
     @close-dialog.window="if (matchesDialog($event)) open = false"
     @keydown.escape.window="if (open && {{ $closeable ? 'true' : 'false' }}) open = false"
@@ -19,73 +51,84 @@
         <span @click="open = true">{{ $trigger }}</span>
     @endif
 
-    {{-- Backdrop --}}
-    <div
-        x-show="open"
-        x-transition:enter="transition ease-out duration-150"
-        x-transition:enter-start="opacity-0"
-        x-transition:enter-end="opacity-100"
-        x-transition:leave="transition ease-in duration-100"
-        x-transition:leave-start="opacity-100"
-        x-transition:leave-end="opacity-0"
-        class="fixed inset-0 z-[9990] bg-black/40"
-        @if($closeable) @click="open = false" @endif
-        style="display:none"
-    ></div>
+    {{-- Teleport to <body> so fixed positioning is never trapped inside a
+         parent stacking context (e.g. a card or another dialog). --}}
+    <template x-teleport="body">
+        <div>
+            {{-- Backdrop --}}
+            <div
+                x-show="open"
+                x-transition:enter="transition ease-out duration-150"
+                x-transition:enter-start="opacity-0"
+                x-transition:enter-end="opacity-100"
+                x-transition:leave="transition ease-in duration-100"
+                x-transition:leave-start="opacity-100"
+                x-transition:leave-end="opacity-0"
+                class="fixed inset-0 z-[9990] bg-black/40"
+                @if($closeable) @click="open = false" @endif
+                style="display:none"
+            ></div>
 
-    {{-- Dialog panel --}}
-    <div
-        x-show="open"
-        x-transition:enter="transition ease-out duration-200"
-        x-transition:enter-start="opacity-0 scale-90"
-        x-transition:enter-end="opacity-100 scale-100"
-        x-transition:leave="transition ease-in duration-100"
-        x-transition:leave-start="opacity-100 scale-100"
-        x-transition:leave-end="opacity-0 scale-90"
-        class="fixed inset-0 z-[9991] flex items-center justify-center p-4"
-        style="display:none"
-    >
-        <div
-            @class([
-                'bg-base-100 rounded-2xl shadow-2xl w-full flex flex-col text-center',
-                'max-w-xs'  => $size === 'sm',
-                'max-w-sm'  => $size === 'md',
-                'max-w-lg'  => $size === 'lg',
-            ])
-            @click.stop
-        >
-            {{-- Icon + Title --}}
-            <div class="px-6 pt-7 pb-4 flex flex-col items-center gap-3">
-                @if($icon)
-                    <span class="{{ $iconColor }}">
-                        <x-tallui-icon :name="$icon" class="w-12 h-12" />
-                    </span>
-                @endif
-                @if($title)
-                    <h3 class="font-bold text-xl">{{ $title }}</h3>
-                @endif
-            </div>
+            {{-- Dialog panel --}}
+            <div
+                x-show="open"
+                x-transition:enter="transition ease-out duration-200"
+                x-transition:enter-start="opacity-0 scale-90"
+                x-transition:enter-end="opacity-100 scale-100"
+                x-transition:leave="transition ease-in duration-100"
+                x-transition:leave-start="opacity-100 scale-100"
+                x-transition:leave-end="opacity-0 scale-90"
+                class="fixed inset-0 z-[9991] flex items-center justify-center p-4"
+                style="display:none"
+            >
+                <div
+                    x-ref="panel"
+                    role="{{ $type === 'confirm' ? 'alertdialog' : 'dialog' }}"
+                    aria-modal="true"
+                    :aria-labelledby="dialogId + '-title'"
+                    @keydown.tab="trapTab($event)"
+                    @class([
+                        'bg-base-100 rounded-2xl shadow-2xl w-full flex flex-col text-center',
+                        'max-w-xs'  => $size === 'sm',
+                        'max-w-sm'  => $size === 'md',
+                        'max-w-lg'  => $size === 'lg',
+                    ])
+                    @click.stop
+                >
+                    {{-- Icon + Title --}}
+                    <div class="px-6 pt-7 pb-4 flex flex-col items-center gap-3">
+                        @if($icon)
+                            <span class="{{ $iconColor }}">
+                                <x-tallui-icon :name="$icon" class="w-12 h-12" />
+                            </span>
+                        @endif
+                        @if($title)
+                            <h3 :id="dialogId + '-title'" class="font-bold text-xl">{{ $title }}</h3>
+                        @endif
+                    </div>
 
-            {{-- Body --}}
-            <div class="px-6 pb-5 text-sm text-base-content/70">
-                {{ $slot }}
-            </div>
+                    {{-- Body --}}
+                    <div class="px-6 pb-5 text-sm text-base-content/70">
+                        {{ $slot }}
+                    </div>
 
-            {{-- Footer / actions --}}
-            @if(isset($footer))
-                <div class="flex items-center justify-center gap-3 px-6 py-4 border-t border-base-200">
-                    {{ $footer }}
+                    {{-- Footer / actions --}}
+                    @if(isset($footer))
+                        <div class="flex items-center justify-center gap-3 px-6 py-4 border-t border-base-200">
+                            {{ $footer }}
+                        </div>
+                    @endif
+
+                    {{-- Default close button if no footer --}}
+                    @if(!isset($footer) && $closeable)
+                        <div class="px-6 pb-5">
+                            <button @click="open = false" class="btn btn-block btn-ghost">
+                                {{ __('Close') }}
+                            </button>
+                        </div>
+                    @endif
                 </div>
-            @endif
-
-            {{-- Default close button if no footer --}}
-            @if(!isset($footer) && $closeable)
-                <div class="px-6 pb-5">
-                    <button @click="open = false" class="btn btn-block btn-ghost">
-                        {{ __('Close') }}
-                    </button>
-                </div>
-            @endif
+            </div>
         </div>
-    </div>
+    </template>
 </div>

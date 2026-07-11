@@ -29,6 +29,11 @@ class Button extends Component
         public ?string $tooltipLeft = null,
         public ?string $tooltipRight = null,
         public ?string $tooltipBottom = null,
+        public ?string $confirm = null,           // message shown in a confirm dialog before the click is allowed through
+        public string $confirmTitle = 'Are you sure?',
+        public string $confirmType = 'confirm',    // confirm | warning | error
+        public string $confirmLabel = 'Confirm',
+        public string $cancelLabel = 'Cancel',
     ) {
         $this->tooltip ??= $this->tooltipLeft ?? $this->tooltipRight ?? $this->tooltipBottom;
         $this->generateUuid($id);

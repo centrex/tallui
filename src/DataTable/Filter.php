@@ -11,6 +11,7 @@ class Filter
     public const TYPE_DATE = 'date';
     public const TYPE_DATE_RANGE = 'date_range';
     public const TYPE_BOOLEAN = 'boolean';
+    public const TYPE_NUMBER_RANGE = 'number_range';
 
     /** @var array<int|string, string> */
     public array $options = [];
@@ -71,6 +72,15 @@ class Filter
         return new static($label, $column, self::TYPE_BOOLEAN);
     }
 
+    /**
+     * Numeric min/max range filter — useful for amount/balance/quantity columns
+     * on financial tables (e.g. "invoices between $500 and $5,000").
+     */
+    public static function numberRange(string $label, string $column): static
+    {
+        return new static($label, $column, self::TYPE_NUMBER_RANGE);
+    }
+
     // ── Fluent modifiers ───────────────────────────────────────────────────
 
     public function placeholder(string $placeholder): static
@@ -102,6 +112,10 @@ class Filter
     {
         if ($this->type === self::TYPE_DATE_RANGE) {
             return [$this->column . '_from', ($this->toColumn ?? $this->column) . '_to'];
+        }
+
+        if ($this->type === self::TYPE_NUMBER_RANGE) {
+            return [$this->column . '_min', $this->column . '_max'];
         }
 
         return [$this->column];

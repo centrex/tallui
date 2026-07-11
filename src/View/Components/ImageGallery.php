@@ -33,12 +33,26 @@ class ImageGallery extends Component
                 }"
                 {{ $attributes }}
             >
+                @php
+                    // Tailwind's JIT scanner only recognizes complete literal class tokens,
+                    // so `grid-cols-{{ $columns }}` (interpolated) is never generated. Map to
+                    // a fixed set of literal classes instead.
+                    $gridColsClass = match (true) {
+                        $columns <= 1 => 'grid-cols-1',
+                        $columns === 2 => 'grid-cols-2',
+                        $columns === 3 => 'grid-cols-3',
+                        $columns === 4 => 'grid-cols-4',
+                        $columns === 5 => 'grid-cols-5',
+                        default => 'grid-cols-6',
+                    };
+                @endphp
+
                 {{-- Grid --}}
-                <div class="grid gap-2 grid-cols-{{ $columns }}">
+                <div class="grid gap-2 {{ $gridColsClass }}" role="{{ $lightbox ? 'list' : 'group' }}">
                     @foreach($images as $i => $img)
                         <div
                             class="relative overflow-hidden rounded-lg cursor-pointer group {{ $height }}"
-                            @if($lightbox) @click="open({{ $i }})" @endif
+                            @if($lightbox) @click="open({{ $i }})" role="listitem" tabindex="0" @keydown.enter="open({{ $i }})" @endif
                         >
                             <img
                                 src="{{ $img['src'] }}"
@@ -65,26 +79,30 @@ class ImageGallery extends Component
                         x-transition:leave-start="opacity-100"
                         x-transition:leave-end="opacity-0"
                         class="fixed inset-0 z-[9999] bg-black/90 flex items-center justify-center"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-label="Image lightbox"
+                        x-init="$watch('lightbox', (v) => v && $nextTick(() => $el.querySelector('[data-lightbox-close]')?.focus()))"
                         @click.self="close()"
                         @keydown.escape.window="close()"
                         @keydown.arrow-left.window="prev()"
                         @keydown.arrow-right.window="next()"
                         style="display:none"
                     >
-                        <button @click="prev()" class="absolute left-4 btn btn-circle btn-ghost text-white text-2xl">❮</button>
+                        <button @click="prev()" aria-label="Previous image" class="absolute left-4 btn btn-circle btn-ghost text-white text-2xl">❮</button>
 
-                        <div class="max-w-4xl max-h-[90vh] flex flex-col items-center gap-3">
+                        <div class="max-w-4xl max-h-[90vh] flex flex-col items-center gap-3" role="group" aria-roledescription="slide">
                             <img
                                 :src="images[current]?.src"
                                 :alt="images[current]?.alt || ''"
                                 class="max-w-full max-h-[80vh] object-contain rounded-lg"
                             />
                             <p x-show="images[current]?.caption" x-text="images[current]?.caption" class="text-white/70 text-sm"></p>
-                            <p class="text-white/40 text-xs" x-text="`${current + 1} / ${images.length}`"></p>
+                            <p class="text-white/40 text-xs" x-text="`${current + 1} / ${images.length}`" aria-live="polite"></p>
                         </div>
 
-                        <button @click="next()" class="absolute right-4 btn btn-circle btn-ghost text-white text-2xl">❯</button>
-                        <button @click="close()" class="absolute top-4 right-4 btn btn-circle btn-ghost text-white">✕</button>
+                        <button @click="next()" aria-label="Next image" class="absolute right-4 btn btn-circle btn-ghost text-white text-2xl">❯</button>
+                        <button @click="close()" data-lightbox-close aria-label="Close lightbox" class="absolute top-4 right-4 btn btn-circle btn-ghost text-white">✕</button>
                     </div>
                 @endif
             </div>

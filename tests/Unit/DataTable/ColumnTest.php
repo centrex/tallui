@@ -139,6 +139,96 @@ describe('Column::getValue()', function (): void {
     });
 });
 
+describe('Column formatting', function (): void {
+    it('formats currency with a $ symbol and two decimals by default', function (): void {
+        expect(Column::formatWithHint(1234.5, 'currency'))->toBe('$1,234.50');
+    });
+
+    it('formats currency with an accounting-style parenthesis for negative values', function (): void {
+        expect(Column::formatWithHint(-320.75, 'currency'))->toBe('($320.75)');
+    });
+
+    it('supports a currency code suffix for the symbol', function (): void {
+        expect(Column::formatWithHint(50, 'currency:EUR'))->toBe('€50.00')
+            ->and(Column::formatWithHint(50, 'currency:BDT'))->toBe('৳50.00')
+            ->and(Column::formatWithHint(50, 'currency:XYZ'))->toBe('XYZ 50.00');
+    });
+
+    it('formats plain numbers with thousands separators', function (): void {
+        expect(Column::formatWithHint(1234567, 'number'))->toBe('1,234,567');
+    });
+
+    it('formats decimals to the given precision', function (): void {
+        expect(Column::formatWithHint(1.5, 'decimal:3'))->toBe('1.500')
+            ->and(Column::formatWithHint(1.567, 'decimal'))->toBe('1.57');
+    });
+
+    it('formats percentages by multiplying by 100 unless :raw is given', function (): void {
+        expect(Column::formatWithHint(0.256, 'percent'))->toBe('25.6%')
+            ->and(Column::formatWithHint(25.6, 'percent:raw'))->toBe('25.6%');
+    });
+
+    it('formats dates', function (): void {
+        expect(Column::formatWithHint('2025-04-25', 'date'))->toBe('Apr 25, 2025');
+    });
+
+    it('passes through unformatted or unrecognised values unchanged', function (): void {
+        expect(Column::formatWithHint('Acme', null))->toBe('Acme')
+            ->and(Column::formatWithHint(null, 'currency'))->toBe('')
+            ->and(Column::formatWithHint('x', 'not-a-real-format'))->toBe('x');
+    });
+
+    it('->currency() is shorthand for ->format(currency:CODE)', function (): void {
+        $col = Column::make('Amount', 'amount')->currency('EUR');
+
+        expect($col->format)->toBe('currency:EUR')
+            ->and($col->formatValue(10))->toBe('€10.00');
+    });
+});
+
+describe('Column alignment', function (): void {
+    it('defaults to left alignment with no format', function (): void {
+        expect(Column::make('Name', 'name')->resolvedAlign())->toBe('left');
+    });
+
+    it('auto-right-aligns numeric formats', function (): void {
+        expect(Column::make('Amount', 'amount')->currency()->resolvedAlign())->toBe('right')
+            ->and(Column::make('Count', 'count')->format('number')->resolvedAlign())->toBe('right')
+            ->and(Column::make('Rate', 'rate')->format('percent')->resolvedAlign())->toBe('right');
+    });
+
+    it('does not auto-right-align non-numeric formats like date', function (): void {
+        expect(Column::make('Created', 'created_at')->format('date')->resolvedAlign())->toBe('left');
+    });
+
+    it('an explicit ->align() call wins over the numeric-format default', function (): void {
+        expect(Column::make('Amount', 'amount')->currency()->align('center')->resolvedAlign())->toBe('center');
+    });
+
+    it('isNumericFormat() reflects the format base', function (): void {
+        expect(Column::make('Amount', 'amount')->currency()->isNumericFormat())->toBeTrue()
+            ->and(Column::make('Name', 'name')->isNumericFormat())->toBeFalse();
+    });
+});
+
+describe('Column::summable()', function (): void {
+    it('is false by default', function (): void {
+        expect(Column::make('Amount', 'amount')->summable)->toBeFalse();
+    });
+
+    it('sets the summable flag', function (): void {
+        expect(Column::make('Amount', 'amount')->summable()->summable)->toBeTrue();
+    });
+
+    it('is included in toArray()', function (): void {
+        $arr = Column::make('Amount', 'amount')->currency()->summable()->toArray();
+
+        expect($arr)->toHaveKey('summable', true)
+            ->and($arr)->toHaveKey('align', 'right')
+            ->and($arr)->toHaveKey('isNumeric', true);
+    });
+});
+
 describe('Column::toArray()', function (): void {
     it('serializes all fields', function (): void {
         $arr = Column::make('Name', 'name')

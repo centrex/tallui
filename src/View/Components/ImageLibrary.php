@@ -56,8 +56,21 @@ class ImageLibrary extends Component
                 @keydown.arrow-right.window="if (lightbox) next()"
                 {{ $attributes }}
             >
+                @php
+                    // Tailwind's JIT scanner only recognizes complete literal class tokens,
+                    // so `sm:grid-cols-{{ $columns }}` (interpolated) is never generated.
+                    $gridColsClass = match (true) {
+                        $columns <= 1 => 'sm:grid-cols-1',
+                        $columns === 2 => 'sm:grid-cols-2',
+                        $columns === 3 => 'sm:grid-cols-3',
+                        $columns === 4 => 'sm:grid-cols-4',
+                        $columns === 5 => 'sm:grid-cols-5',
+                        default => 'sm:grid-cols-6',
+                    };
+                @endphp
+
                 {{-- Grid --}}
-                <div class="grid gap-2 grid-cols-2 sm:grid-cols-{{ $columns }}">
+                <div class="grid gap-2 grid-cols-2 {{ $gridColsClass }}" role="list">
                     <template x-for="(img, i) in images" :key="img.id ?? img.src">
                         <div
                             class="relative overflow-hidden rounded-lg cursor-pointer group {{ $height }}"
@@ -65,9 +78,12 @@ class ImageLibrary extends Component
                                 'ring-2 ring-primary ring-offset-1': selectable && isSelected(img),
                                 'opacity-70': selectable && !isSelected(img) && selected.length > 0
                             }"
+                            role="listitem"
+                            tabindex="0"
+                            :aria-pressed="selectable ? isSelected(img) : null"
                             @click="toggle(img)"
                             @dblclick.stop="openLightbox(i)"
-                        >
+                            @keydown.enter="toggle(img)"
                             <img
                                 :src="img.src"
                                 :alt="img.alt || ''"
@@ -117,12 +133,15 @@ class ImageLibrary extends Component
                     x-transition:leave-start="opacity-100"
                     x-transition:leave-end="opacity-0"
                     class="fixed inset-0 z-[9999] bg-black/90 flex items-center justify-center"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-label="Image lightbox"
                     @click.self="closeLightbox()"
                     style="display:none"
                 >
-                    <button @click="prev()" class="absolute left-4 btn btn-circle btn-ghost text-white opacity-70 hover:opacity-100">❮</button>
+                    <button @click="prev()" aria-label="Previous image" class="absolute left-4 btn btn-circle btn-ghost text-white opacity-70 hover:opacity-100">❮</button>
 
-                    <div class="max-w-5xl max-h-[90vh] flex flex-col items-center gap-3 px-16">
+                    <div class="max-w-5xl max-h-[90vh] flex flex-col items-center gap-3 px-16" role="group" aria-roledescription="slide">
                         <img
                             :src="images[current]?.src"
                             :alt="images[current]?.alt || ''"
@@ -130,12 +149,12 @@ class ImageLibrary extends Component
                         />
                         <div class="flex items-center gap-4">
                             <p x-show="images[current]?.caption" x-text="images[current]?.caption" class="text-white/70 text-sm"></p>
-                            <p class="text-white/40 text-xs" x-text="`${current + 1} / ${images.length}`"></p>
+                            <p class="text-white/40 text-xs" x-text="`${current + 1} / ${images.length}`" aria-live="polite"></p>
                         </div>
                     </div>
 
-                    <button @click="next()" class="absolute right-4 btn btn-circle btn-ghost text-white opacity-70 hover:opacity-100">❯</button>
-                    <button @click="closeLightbox()" class="absolute top-3 right-3 btn btn-sm btn-circle btn-ghost text-white">✕</button>
+                    <button @click="next()" aria-label="Next image" class="absolute right-4 btn btn-circle btn-ghost text-white opacity-70 hover:opacity-100">❯</button>
+                    <button @click="closeLightbox()" aria-label="Close lightbox" class="absolute top-3 right-3 btn btn-sm btn-circle btn-ghost text-white">✕</button>
                 </div>
             </div>
             BLADE;

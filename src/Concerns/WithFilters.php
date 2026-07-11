@@ -92,12 +92,13 @@ trait WithFilters
     private function applyFilter(Builder $query, Filter $filter): void
     {
         match ($filter->type) {
-            Filter::TYPE_TEXT       => $this->applyTextFilter($query, $filter),
-            Filter::TYPE_SELECT     => $this->applySelectFilter($query, $filter),
-            Filter::TYPE_DATE       => $this->applyDateFilter($query, $filter),
-            Filter::TYPE_DATE_RANGE => $this->applyDateRangeFilter($query, $filter),
-            Filter::TYPE_BOOLEAN    => $this->applyBooleanFilter($query, $filter),
-            default                 => null,
+            Filter::TYPE_TEXT         => $this->applyTextFilter($query, $filter),
+            Filter::TYPE_SELECT       => $this->applySelectFilter($query, $filter),
+            Filter::TYPE_DATE         => $this->applyDateFilter($query, $filter),
+            Filter::TYPE_DATE_RANGE   => $this->applyDateRangeFilter($query, $filter),
+            Filter::TYPE_BOOLEAN      => $this->applyBooleanFilter($query, $filter),
+            Filter::TYPE_NUMBER_RANGE => $this->applyNumberRangeFilter($query, $filter),
+            default                   => null,
         };
     }
 
@@ -166,5 +167,19 @@ trait WithFilters
         }
 
         $query->where($filter->column, filter_var($value, FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE) ?? false);
+    }
+
+    private function applyNumberRangeFilter(Builder $query, Filter $filter): void
+    {
+        $min = $this->tableFilters[$filter->column . '_min'] ?? '';
+        $max = $this->tableFilters[$filter->column . '_max'] ?? '';
+
+        if ($min !== '' && $min !== null && is_numeric($min)) {
+            $query->where($filter->column, '>=', (float) $min);
+        }
+
+        if ($max !== '' && $max !== null && is_numeric($max)) {
+            $query->where($filter->column, '<=', (float) $max);
+        }
     }
 }

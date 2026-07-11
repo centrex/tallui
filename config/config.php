@@ -41,6 +41,15 @@ return [
         'per_page'         => 15,
         'per_page_options' => [10, 15, 25, 50, 100],
         'striped'          => true,
+        'header_style'     => 'default', // default | minimal | bold | primary
+
+        /**
+         * Remember each authenticated user's column-visibility choices
+         * across sessions/devices (via the cache store below), instead of
+         * only for the current URL. Set false to disable globally; a host
+         * table can also opt out via public $persistColumnPreferences = false.
+         */
+        'persist_column_preferences' => true,
     ],
 
     /**

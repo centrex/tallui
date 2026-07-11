@@ -41,12 +41,18 @@
         <div class="flex items-center gap-2 flex-wrap">
 
             {{-- Selection indicator --}}
-            @if(count($selectedRows) > 0)
+            @if(count($selectedRows) > 0 || $selectAllMatching)
                 <div class="flex items-center gap-2 pl-3 pr-2 py-1.5 rounded-xl bg-primary/10 border border-primary/20 text-primary text-sm font-medium">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                     </svg>
-                    <span>{{ count($selectedRows) }} selected</span>
+                    <span>
+                        @if($selectAllMatching)
+                            All {{ $totalMatching ?? '' }} matching selected
+                        @else
+                            {{ count($selectedRows) }} selected
+                        @endif
+                    </span>
                     <button wire:click="clearSelection"
                         class="ml-0.5 w-4 h-4 rounded-full hover:bg-primary/20 flex items-center justify-center transition-colors"
                         title="Clear selection">
@@ -111,16 +117,61 @@
                 @endif
             @endif
 
-            {{-- Per-page --}}
-            <div class="flex items-center gap-2">
-                <span class="text-xs text-base-content/50 hidden sm:block">Rows</span>
-                <select wire:model.live="perPage"
-                    class="select select-bordered select-sm rounded-xl text-sm border-base-300 bg-base-100 shadow-sm focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all">
-                    @foreach($this->perPageOptions() as $option)
-                        <option value="{{ $option }}">{{ $option }}</option>
-                    @endforeach
-                </select>
-            </div>
+            {{-- Column visibility (responsive / user-controlled columns) --}}
+            @php
+                $toggleableColumns = array_filter($allColumns, fn ($c) => $c['key'] !== null && !$c['isActions']);
+            @endphp
+            @if($showColumnToggle && count($toggleableColumns) > 1)
+                <div x-data="{ open: false }" @click.outside="open = false" class="relative">
+                    <button
+                        @click="open = !open"
+                        type="button"
+                        aria-haspopup="true"
+                        :aria-expanded="open ? 'true' : 'false'"
+                        class="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium border border-base-300 bg-base-100
+                               text-base-content/70 hover:border-base-400 hover:text-base-content shadow-sm transition-all duration-200"
+                    >
+                        <x-tallui-icon name="o-view-columns" class="w-4 h-4" />
+                        Columns
+                        @if(count($hiddenColumns) > 0)
+                            <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-primary text-primary-content text-[10px] font-bold">
+                                {{ count($hiddenColumns) }}
+                            </span>
+                        @endif
+                    </button>
+                    <div
+                        x-show="open"
+                        x-cloak
+                        x-transition:enter="transition ease-out duration-100"
+                        x-transition:enter-start="opacity-0 -translate-y-1"
+                        x-transition:enter-end="opacity-100 translate-y-0"
+                        role="menu"
+                        aria-label="Toggle column visibility"
+                        class="absolute right-0 z-30 mt-1 w-56 bg-base-100 border border-base-300 rounded-xl shadow-lg py-1.5"
+                        style="display:none"
+                    >
+                        @foreach($toggleableColumns as $col)
+                            <label class="flex items-center gap-2.5 px-3 py-1.5 text-sm cursor-pointer hover:bg-base-200">
+                                <input
+                                    type="checkbox"
+                                    wire:click="toggleColumnVisibility('{{ $col['key'] }}')"
+                                    @checked(!in_array($col['key'], $hiddenColumns, true))
+                                    class="checkbox checkbox-sm checkbox-primary rounded"
+                                />
+                                <span class="flex-1 truncate">{{ $col['label'] }}</span>
+                            </label>
+                        @endforeach
+                        @if(count($hiddenColumns) > 0)
+                            <div class="border-t border-base-200 mt-1 pt-1">
+                                <button wire:click="resetColumnVisibility" type="button"
+                                    class="w-full text-left px-3 py-1.5 text-sm text-primary hover:bg-base-200">
+                                    Show all columns
+                                </button>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            @endif
         </div>
     </div>
 
@@ -129,7 +180,7 @@
          FILTER PANEL
     ══════════════════════════════════════════════════════════ --}}
     @if(count($filterDefs) > 0 && $filtersOpen)
-        <div class="rounded-2xl border border-base-200 bg-base-50 p-5 shadow-sm">
+        <div class="rounded-2xl border border-base-200 bg-base-200/30 p-5 shadow-sm">
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 @foreach($filterDefs as $filter)
                     <div>
@@ -176,6 +227,19 @@
                                 <option value="1">Yes</option>
                                 <option value="0">No</option>
                             </select>
+
+                        @elseif($filter['type'] === 'number_range')
+                            <div class="flex items-center gap-2">
+                                <input type="number" step="any" inputmode="decimal"
+                                    wire:model.live.debounce.400ms="tableFilters.{{ $filter['column'] }}_min"
+                                    placeholder="Min"
+                                    class="input input-sm w-full rounded-xl border-base-300 bg-base-100 tabular-nums focus:border-primary transition-all shadow-sm" />
+                                <span class="text-base-content/30 shrink-0">–</span>
+                                <input type="number" step="any" inputmode="decimal"
+                                    wire:model.live.debounce.400ms="tableFilters.{{ $filter['column'] }}_max"
+                                    placeholder="Max"
+                                    class="input input-sm w-full rounded-xl border-base-300 bg-base-100 tabular-nums focus:border-primary transition-all shadow-sm" />
+                            </div>
                         @endif
                     </div>
                 @endforeach
@@ -231,22 +295,39 @@
             </div>
         </div>
 
+        {{-- "Select all matching" banner — offered once every row on the current
+             page is selected and there are more rows beyond it. Keeps bulk
+             actions honest on huge tables instead of silently only acting on
+             the visible page. --}}
+        @if($pageFullySelected && $hasMoreThanPage && !$selectAllMatching)
+            <div class="flex items-center justify-center gap-2 px-4 py-2 text-sm bg-primary/5 border-b border-primary/10 text-primary">
+                <span>All {{ count($selectedRows) }} rows on this page are selected.</span>
+                <button wire:click="selectAllAcrossPages" class="font-semibold hover:underline">
+                    Select all{{ $totalMatching ? " {$totalMatching}" : '' }} matching rows
+                </button>
+            </div>
+        @endif
+
         {{-- ── Mobile card stack ─────────────────────────────────────────── --}}
         @if($bp)
         <div class="{{ $cardsClass }} divide-y divide-base-200">
             @forelse($rows as $row)
-                @php $rowId = (string) data_get($row, $primaryKey) @endphp
+                @php
+                    $rowId = (string) data_get($row, $primaryKey);
+                    $isSelected = $selectAllMatching || in_array($rowId, $selectedRows);
+                @endphp
                 <div @class([
                         'flex items-start gap-3 px-4 py-3',
-                        'bg-primary/5' => in_array($rowId, $selectedRows),
+                        'bg-primary/5' => $isSelected,
                     ])>
                     {{-- Checkbox --}}
                     <div class="pt-0.5 shrink-0">
                         <input
                             type="checkbox"
+                            aria-label="Select row {{ $rowId }}"
                             class="checkbox checkbox-sm checkbox-primary rounded"
                             wire:click="toggleRow('{{ $rowId }}')"
-                            @if(in_array($rowId, $selectedRows)) checked @endif
+                            @if($isSelected) checked @endif
                         />
                     </div>
 
@@ -257,16 +338,20 @@
                             <div class="font-semibold text-sm text-base-content truncate">
                                 @if($primaryColumn['isBadge'])
                                     @php
-                                        $cv = data_get($row, $primaryColumn['key']);
-                                        $bc = $primaryColumn['badgeColors'][(string)$cv] ?? ($primaryColumn['badgeColor'] ?? 'neutral');
+                                        $cv = \Centrex\TallUi\DataTable\Column::scalarValue(data_get($row, $primaryColumn['key']));
+                                        $bc = $primaryColumn['badgeColors'][$cv] ?? ($primaryColumn['badgeColor'] ?? 'neutral');
                                     @endphp
-                                    <span class="badge badge-sm badge-{{ $bc }}">{{ $cv }}</span>
+                                    <span class="badge badge-sm badge-{{ $bc }}">{{ \Centrex\TallUi\DataTable\Column::badgeLabel($cv) }}</span>
                                 @elseif($primaryColumn['isRaw'])
                                     {!! data_get($row, $primaryColumn['key']) !!}
                                 @elseif($primaryColumn['isHtml'])
                                     {!! $this->renderHtmlColumn($primaryColumn, $row) !!}
                                 @else
-                                    {{ data_get($row, $primaryColumn['key']) }}
+                                    @php $primaryRaw = data_get($row, $primaryColumn['key']); @endphp
+                                    <span @class([
+                                        'tabular-nums' => $primaryColumn['isNumeric'] ?? false,
+                                        'text-error' => ($primaryColumn['isNumeric'] ?? false) && is_numeric($primaryRaw) && (float) $primaryRaw < 0,
+                                    ])>{{ \Centrex\TallUi\DataTable\Column::formatWithHint($primaryRaw, $primaryColumn['format'] ?? null) }}</span>
                                 @endif
                             </div>
                         @endif
@@ -280,16 +365,20 @@
                                         <dd class="text-xs text-base-content/70 truncate">
                                             @if($col['isBadge'])
                                                 @php
-                                                    $cv = data_get($row, $col['key']);
-                                                    $bc = $col['badgeColors'][(string)$cv] ?? ($col['badgeColor'] ?? 'neutral');
+                                                    $cv = \Centrex\TallUi\DataTable\Column::scalarValue(data_get($row, $col['key']));
+                                                    $bc = $col['badgeColors'][$cv] ?? ($col['badgeColor'] ?? 'neutral');
                                                 @endphp
-                                                <span class="badge badge-xs badge-{{ $bc }}">{{ $cv }}</span>
+                                                <span class="badge badge-xs badge-{{ $bc }}">{{ \Centrex\TallUi\DataTable\Column::badgeLabel($cv) }}</span>
                                             @elseif($col['isRaw'])
                                                 {!! data_get($row, $col['key']) !!}
                                             @elseif($col['isHtml'])
                                                 {!! $this->renderHtmlColumn($col, $row) !!}
                                             @else
-                                                {{ data_get($row, $col['key']) ?? '—' }}
+                                                @php $secondaryRaw = data_get($row, $col['key']); @endphp
+                                                <span @class([
+                                                    'tabular-nums' => $col['isNumeric'] ?? false,
+                                                    'text-error' => ($col['isNumeric'] ?? false) && is_numeric($secondaryRaw) && (float) $secondaryRaw < 0,
+                                                ])>{{ $secondaryRaw !== null ? \Centrex\TallUi\DataTable\Column::formatWithHint($secondaryRaw, $col['format'] ?? null) : '—' }}</span>
                                             @endif
                                         </dd>
                                     </div>
@@ -320,7 +409,7 @@
                                     </a>
                                 @elseif($action['emitEvent'])
                                     <button
-                                        wire:click="$dispatch('{{ $action['emitEvent'] }}', { id: {{ data_get($row, $action['emitKey']) }} })"
+                                        wire:click="$dispatch('{{ $action['emitEvent'] }}', { id: @js(data_get($row, $action['emitKey'])) })"
                                         @class([
                                             'inline-flex items-center gap-1 p-1.5 rounded-lg text-xs font-medium border transition-all duration-150',
                                             "bg-{$action['color']}/10 text-{$action['color']} border-{$action['color']}/20 hover:bg-{$action['color']}/20",
@@ -364,17 +453,31 @@
         @endif
 
         {{-- ── Desktop table ─────────────────────────────────────────────── --}}
-        <div class="{{ $tableClass }} overflow-x-auto">
+        @php
+            // Header theme — 'default' | 'minimal' | 'bold' | 'primary'.
+            // Note: DaisyUI only defines base-100/200/300 (no base-50) — the header
+            // background is deliberately a step darker than the zebra stripe
+            // (base-200/50) below, and row hover (base-200 solid) sits between
+            // the two, so hover stays visible even on an already-striped row.
+            [$headerBgClass, $headerTextClass, $headerBorderClass] = match ($headerStyle) {
+                'minimal' => ['bg-base-100', 'font-medium text-xs text-base-content/40', 'border-b border-base-300'],
+                'bold'    => ['bg-base-300', 'font-bold text-xs uppercase tracking-wider text-base-content', 'border-b border-base-300'],
+                'primary' => ['bg-primary/15', 'font-semibold text-xs uppercase tracking-wider text-primary', 'border-b border-primary/20'],
+                default   => ['bg-base-300', 'font-semibold text-xs uppercase tracking-wider text-base-content/60', 'border-b border-base-300'],
+            };
+        @endphp
+        <div class="{{ $tableClass }} overflow-auto" @if($maxHeight) style="max-height: {{ $maxHeight }}" @endif>
             <table class="w-full text-sm">
-                <thead>
-                    <tr class="border-b border-base-200 bg-base-50">
+                <thead class="sticky top-0 z-[5]">
+                    <tr @class([$headerBorderClass, $headerBgClass])>
                         {{-- Select-all checkbox --}}
-                        <th class="pl-5 pr-2 py-3 w-10"
+                        <th scope="col" @class(['pl-5 pr-2 py-3 w-10', $headerBgClass])
                             x-data
                             x-init="$nextTick(() => { $refs.selAll.indeterminate = {{ $pagePartiallySelected ? 'true' : 'false' }} })">
                             <input
                                 type="checkbox"
                                 x-ref="selAll"
+                                aria-label="Select all rows"
                                 class="checkbox checkbox-sm checkbox-primary rounded"
                                 wire:click="togglePageSelection"
                                 @if($pageFullySelected) checked @endif
@@ -382,16 +485,28 @@
                         </th>
                         @foreach($columns as $column)
                             @php
-                                $thClass = 'px-4 py-3 text-left font-semibold text-xs uppercase tracking-wider text-base-content/50 whitespace-nowrap first:pl-5 last:pr-5';
+                                $align = $column['align'] ?? 'left';
+                                $thClass = "px-4 py-3 {$headerTextClass} {$headerBgClass} whitespace-nowrap first:pl-5 last:pr-5";
+                                $thClass .= match ($align) {
+                                    'right'  => ' text-right',
+                                    'center' => ' text-center',
+                                    default  => ' text-left',
+                                };
                                 if (!empty($column['visibleFrom'])) {
                                     $thClass .= " hidden {$column['visibleFrom']}:table-cell";
                                 }
+                                $ariaSort = $column['sortable'] && $column['key']
+                                    ? ($sortBy === $column['key'] ? ($sortDirection === 'asc' ? 'ascending' : 'descending') : 'none')
+                                    : null;
                             @endphp
-                            <th class="{{ $thClass }}">
+                            <th scope="col" class="{{ $thClass }}" @if($ariaSort) aria-sort="{{ $ariaSort }}" @endif>
                                 @if($column['sortable'] && $column['key'])
                                     <button
                                         wire:click="sort('{{ $column['key'] }}')"
-                                        class="group inline-flex items-center gap-1.5 hover:text-primary transition-colors duration-150"
+                                        @class([
+                                            'group inline-flex items-center gap-1.5 hover:text-primary transition-colors duration-150',
+                                            'flex-row-reverse' => $align === 'right',
+                                        ])
                                     >
                                         {{ $column['label'] }}
                                         <span class="flex flex-col gap-px">
@@ -421,24 +536,34 @@
                 </thead>
                 <tbody class="divide-y divide-base-200">
                     @forelse($rows as $row)
-                        @php $rowId = (string) data_get($row, $primaryKey) @endphp
+                        @php
+                            $rowId = (string) data_get($row, $primaryKey);
+                            $isSelected = $selectAllMatching || in_array($rowId, $selectedRows);
+                        @endphp
                         <tr @class([
                                 'group transition-colors duration-100',
-                                'bg-primary/5 hover:bg-primary/8' => in_array($rowId, $selectedRows),
-                                'hover:bg-base-50' => !in_array($rowId, $selectedRows),
+                                'bg-primary/5 hover:bg-primary/10' => $isSelected,
+                                'even:bg-base-200/50' => $striped && !$isSelected,
+                                'hover:bg-base-200' => !$isSelected,
                             ])>
                             {{-- Row checkbox --}}
                             <td class="pl-5 pr-2 py-3.5 w-10">
                                 <input
                                     type="checkbox"
+                                    aria-label="Select row {{ $rowId }}"
                                     class="checkbox checkbox-sm checkbox-primary rounded"
                                     wire:click="toggleRow('{{ $rowId }}')"
-                                    @if(in_array($rowId, $selectedRows)) checked @endif
+                                    @if($isSelected) checked @endif
                                 />
                             </td>
                             @foreach($columns as $column)
                                 @php
                                     $tdClass = 'px-4 py-3.5 text-base-content first:pl-5 last:pr-5 whitespace-nowrap';
+                                    $tdClass .= match ($column['align'] ?? 'left') {
+                                        'right'  => ' text-right',
+                                        'center' => ' text-center',
+                                        default  => ' text-left',
+                                    };
                                     if (!empty($column['visibleFrom'])) {
                                         $tdClass .= " hidden {$column['visibleFrom']}:table-cell";
                                     }
@@ -463,7 +588,7 @@
                                                     </a>
                                                 @elseif($action['emitEvent'])
                                                     <button
-                                                        wire:click="$dispatch('{{ $action['emitEvent'] }}', { id: {{ data_get($row, $action['emitKey']) }} })"
+                                                        wire:click="$dispatch('{{ $action['emitEvent'] }}', { id: @js(data_get($row, $action['emitKey'])) })"
                                                         @class([
                                                             'inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium border transition-all duration-150',
                                                             "bg-{$action['color']}/10 text-{$action['color']} border-{$action['color']}/20 hover:bg-{$action['color']}/20",
@@ -488,16 +613,25 @@
 
                                     @elseif($column['isBadge'])
                                         @php
-                                            $cellValue  = data_get($row, $column['key'] ?? '');
-                                            $badgeColor = $column['badgeColors'][(string) $cellValue] ?? ($column['badgeColor'] ?? 'neutral');
+                                            $cellValue  = \Centrex\TallUi\DataTable\Column::scalarValue(data_get($row, $column['key'] ?? ''));
+                                            $badgeColor = $column['badgeColors'][$cellValue] ?? ($column['badgeColor'] ?? 'neutral');
                                         @endphp
                                         <span @class([
                                             'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium',
                                             "badge badge-sm badge-{$badgeColor}",
-                                        ])>{{ $cellValue }}</span>
+                                        ])>{{ \Centrex\TallUi\DataTable\Column::badgeLabel($cellValue) }}</span>
 
                                     @else
-                                        <span class="text-base-content/80">{{ data_get($row, $column['key'] ?? '') }}</span>
+                                        @php
+                                            $rawValue = data_get($row, $column['key'] ?? '');
+                                            $displayValue = \Centrex\TallUi\DataTable\Column::formatWithHint($rawValue, $column['format'] ?? null);
+                                            $isNegative = ($column['isNumeric'] ?? false) && is_numeric($rawValue) && (float) $rawValue < 0;
+                                        @endphp
+                                        <span @class([
+                                            'text-base-content/80',
+                                            'tabular-nums' => $column['isNumeric'] ?? false,
+                                            'text-error' => $isNegative,
+                                        ])>{{ $displayValue }}</span>
                                     @endif
                                 </td>
                             @endforeach
@@ -528,6 +662,33 @@
                         </tr>
                     @endforelse
                 </tbody>
+                @if(!empty($columnSums))
+                    <tfoot>
+                        <tr class="border-t-2 border-base-300 bg-base-200/50 font-semibold">
+                            <td class="pl-5 pr-2 py-3"></td>
+                            @foreach($columns as $i => $column)
+                                @php
+                                    $tdClass = 'px-4 py-3 text-base-content first:pl-5 last:pr-5 whitespace-nowrap';
+                                    $tdClass .= match ($column['align'] ?? 'left') {
+                                        'right'  => ' text-right',
+                                        'center' => ' text-center',
+                                        default  => ' text-left',
+                                    };
+                                    if (!empty($column['visibleFrom'])) {
+                                        $tdClass .= " hidden {$column['visibleFrom']}:table-cell";
+                                    }
+                                @endphp
+                                <td class="{{ $tdClass }}">
+                                    @if(($column['summable'] ?? false) && $column['key'] && array_key_exists($column['key'], $columnSums))
+                                        <span class="tabular-nums">{{ \Centrex\TallUi\DataTable\Column::formatWithHint($columnSums[$column['key']], $column['format'] ?? null) }}</span>
+                                    @elseif($i === 0)
+                                        <span class="text-base-content/50 uppercase text-xs tracking-wider">Total</span>
+                                    @endif
+                                </td>
+                            @endforeach
+                        </tr>
+                    </tfoot>
+                @endif
             </table>
         </div>
     </div>
@@ -536,18 +697,48 @@
          FOOTER
     ══════════════════════════════════════════════════════════ --}}
     <div class="flex flex-wrap items-center justify-between gap-4">
-        <p class="text-xs text-base-content/40">
-            @if($rows->total() > 0)
-                Showing
-                <span class="font-semibold text-base-content/70">{{ $rows->firstItem() }}–{{ $rows->lastItem() }}</span>
-                of
-                <span class="font-semibold text-base-content/70">{{ $rows->total() }}</span>
-                results
+        {{-- Per-page selector (left) --}}
+        @if($showPerPageSelector)
+            <div class="flex items-center gap-2">
+                <span class="text-xs text-base-content/50">Rows</span>
+                <select wire:model.live="perPage"
+                    class="select select-bordered select-sm rounded-xl text-sm border-base-300 bg-base-100 shadow-sm focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all">
+                    @foreach($this->perPageOptions() as $option)
+                        <option value="{{ $option }}">{{ $option }}</option>
+                    @endforeach
+                </select>
+            </div>
+        @else
+            <div></div>
+        @endif
+
+        {{-- Result count + page nav (right) --}}
+        <div class="flex flex-wrap items-center gap-4">
+            <p class="text-xs text-base-content/40">
+                @if($rows->count() > 0)
+                    Showing
+                    <span class="font-semibold text-base-content/70">{{ $rows->firstItem() }}–{{ $rows->lastItem() }}</span>
+                    @if($totalMatching !== null)
+                        of
+                        <span class="font-semibold text-base-content/70">{{ number_format($totalMatching) }}</span>
+                        results
+                    @endif
+                @else
+                    No results
+                @endif
+            </p>
+
+            {{-- The tallui pagination component only renders nav buttons when
+                 there's more than one page (and needs a real LengthAwarePaginator,
+                 unlike simple pagination's Paginator) — the info text above always
+                 shows regardless, so its own built-in info text stays off here to
+                 avoid rendering "Showing X of Y" a second time. --}}
+            @if($totalMatching !== null)
+                <x-tallui-pagination :paginator="$rows" size="sm" :show-info="false" />
             @else
-                No results
+                {{ $rows->links() }}
             @endif
-        </p>
-        <div>{{ $rows->links() }}</div>
+        </div>
     </div>
 
     {{-- Global search overlay --}}

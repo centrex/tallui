@@ -99,6 +99,8 @@ class FileUpload extends Component
                 {{-- Drop zone --}}
                 <div
                     @click="triggerInput()"
+                    @keydown.enter.prevent="triggerInput()"
+                    @keydown.space.prevent="triggerInput()"
                     @dragover.prevent="dragging = true"
                     @dragleave.prevent="dragging = false"
                     @drop.prevent="dragging = false; handleFiles($event.dataTransfer.files)"
@@ -107,6 +109,9 @@ class FileUpload extends Component
                         'border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center gap-2 cursor-pointer transition-colors duration-150',
                         'border-error' => $error,
                     ])
+                    role="button"
+                    tabindex="0"
+                    aria-label="{{ $uploadText }}"
                 >
                     <x-tallui-icon name="o-cloud-arrow-up" class="w-10 h-10 text-base-content/30" />
                     <p class="text-sm font-medium text-base-content/70">{{ $uploadText }}</p>

@@ -15,6 +15,18 @@ class UuidHost
     }
 }
 
+// Mirrors how Button/Dialog/Choices/Pin/FileUpload call generateUuid(): with an
+// optional, often-null $id — the path that previously collided via serialize($this).
+class UuidHostNoExplicitId
+{
+    use HasUuid;
+
+    public function __construct(public ?string $id = null, public ?string $label = null)
+    {
+        $this->generateUuid($this->id);
+    }
+}
+
 describe('HasUuid trait', function (): void {
     it('generates a uuid string', function (): void {
         $host = new UuidHost();
@@ -40,5 +52,21 @@ describe('HasUuid trait', function (): void {
         $b = new UuidHost('beta');
 
         expect($a->uuid)->not->toBe($b->uuid);
+    });
+
+    it('does not collide for sibling instances with identical props and no explicit id', function (): void {
+        // Regression: generateUuid() used to hash serialize($this), so two instances
+        // with the same constructor props (e.g. two default "Edit" buttons in a loop)
+        // produced the exact same uuid, causing duplicate wire:key / dialog id clashes.
+        $a = new UuidHostNoExplicitId(label: 'Edit');
+        $b = new UuidHostNoExplicitId(label: 'Edit');
+
+        expect($a->uuid)->not->toBe($b->uuid);
+    });
+
+    it('uses the explicit id verbatim when one is provided', function (): void {
+        $host = new UuidHostNoExplicitId(id: 'row-42');
+
+        expect($host->uuid)->toBe('tallui-row-42');
     });
 });

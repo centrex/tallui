@@ -21,7 +21,12 @@ class Drawer extends Component
     {
         return <<<'BLADE'
             <div
-                x-data="{ open: {{ $open ? 'true' : 'false' }} }"
+                x-data="{
+                    open: {{ $open ? 'true' : 'false' }},
+                    returnFocusEl: null,
+                }"
+                x-effect="if (open) { returnFocusEl = returnFocusEl ?? document.activeElement; $nextTick(() => $refs.panel?.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex=\'-1\'])')?.focus()); } else if (returnFocusEl) { returnFocusEl.focus?.(); returnFocusEl = null; }"
+                @keydown.escape.window="open = false"
                 class="drawer {{ $side === 'right' ? 'drawer-end' : '' }}"
                 {{ $attributes }}
             >
@@ -34,8 +39,8 @@ class Drawer extends Component
 
                 {{-- Sidebar --}}
                 <div class="drawer-side z-50">
-                    <label for="{{ $id }}" @click="open = false" class="drawer-overlay"></label>
-                    <div class="{{ $width }} min-h-full bg-base-100 border-r border-base-200">
+                    <label for="{{ $id }}" @click="open = false" aria-label="Close menu" class="drawer-overlay"></label>
+                    <div x-ref="panel" role="dialog" :aria-modal="open" class="{{ $width }} min-h-full bg-base-100 border-r border-base-200">
                         {{ $sidebar ?? '' }}
                     </div>
                 </div>

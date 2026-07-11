@@ -27,8 +27,17 @@ class Column
      */
     public ?string $visibleFrom = null;
 
-    /** Named format hint for the view (e.g. 'currency', 'datetime'). */
+    /**
+     * Named format hint applied to the cell value, e.g. 'currency', 'currency:EUR',
+     * 'number', 'decimal:2', 'percent', 'date', 'datetime'.
+     */
     public ?string $format = null;
+
+    /** Text alignment: 'left' | 'center' | 'right'. Auto-inferred from $format when unset. */
+    public ?string $align = null;
+
+    /** Include this column in the footer totals row (numeric formats only). */
+    public bool $summable = false;
 
     /** DaisyUI badge color modifier when isBadge = true. */
     public ?string $badgeColor = null;
@@ -94,11 +103,126 @@ class Column
         return $this;
     }
 
+    /**
+     * @param  string  $formatter  'currency' | 'currency:EUR' | 'number' | 'decimal:2' | 'percent' | 'date' | 'datetime'
+     */
     public function format(string $formatter): static
     {
         $this->format = $formatter;
 
         return $this;
+    }
+
+    /**
+     * Shorthand for ->format('currency:CODE').
+     */
+    public function currency(string $currencyCode = 'USD'): static
+    {
+        $this->format = 'currency:' . $currencyCode;
+
+        return $this;
+    }
+
+    public function align(string $alignment): static
+    {
+        $this->align = $alignment;
+
+        return $this;
+    }
+
+    /**
+     * Include this column in the footer totals row. The sum is computed across
+     * every matching row (not just the current page), cached alongside the query.
+     */
+    public function summable(): static
+    {
+        $this->summable = true;
+
+        return $this;
+    }
+
+    /**
+     * Resolved text alignment: explicit ->align() wins, otherwise numeric
+     * formats (currency/number/decimal/percent) default to right-aligned —
+     * the convention financial tables use so digits line up on the ones place.
+     */
+    public function resolvedAlign(): string
+    {
+        if ($this->align !== null) {
+            return $this->align;
+        }
+
+        return $this->isNumericFormat() ? 'right' : 'left';
+    }
+
+    public function isNumericFormat(): bool
+    {
+        if ($this->format === null) {
+            return false;
+        }
+
+        $base = explode(':', $this->format, 2)[0];
+
+        return in_array($base, ['currency', 'number', 'decimal', 'percent'], true);
+    }
+
+    /**
+     * Format a raw value per this column's $format hint. Falls back to the
+     * value cast to string when no format (or an unrecognised one) is set.
+     */
+    public function formatValue(mixed $value): string
+    {
+        return self::formatWithHint($value, $this->format);
+    }
+
+    /**
+     * Static formatter usable from array-based column definitions (e.g. the
+     * DataTable Blade view, which only has $columnDefs, not Column instances).
+     */
+    public static function formatWithHint(mixed $value, ?string $format): string
+    {
+        if ($format === null || $value === null || $value === '') {
+            return (string) ($value ?? '');
+        }
+
+        [$base, $arg] = array_pad(explode(':', $format, 2), 2, null);
+
+        return match ($base) {
+            'currency' => self::formatCurrency((float) $value, $arg ?? 'USD'),
+            'number'   => number_format((float) $value),
+            'decimal'  => number_format((float) $value, (int) ($arg ?? 2)),
+            'percent'  => number_format((float) $value * ($arg === 'raw' ? 1 : 100), 1) . '%',
+            'date'     => self::formatDate($value, 'M j, Y'),
+            'datetime' => self::formatDate($value, 'M j, Y g:i A'),
+            default    => (string) $value,
+        };
+    }
+
+    private static function formatCurrency(float $value, string $currencyCode): string
+    {
+        $formatted = number_format(abs($value), 2);
+        $symbol = match (strtoupper($currencyCode)) {
+            'USD'   => '$',
+            'EUR'   => '€',
+            'GBP'   => '£',
+            'BDT'   => '৳',
+            'JPY'   => '¥',
+            'INR'   => '₹',
+            default => strtoupper($currencyCode) . ' ',
+        };
+
+        // Accounting convention: negative amounts in parentheses, not a leading minus.
+        return $value < 0 ? "({$symbol}{$formatted})" : "{$symbol}{$formatted}";
+    }
+
+    private static function formatDate(mixed $value, string $phpFormat): string
+    {
+        try {
+            return ($value instanceof \DateTimeInterface ? $value : new \DateTimeImmutable((string) $value))
+                ->format($phpFormat);
+        } catch (\Exception) {
+            return (string) $value;
+        }
     }
 
     public function relation(string $relation): static
@@ -198,9 +322,35 @@ class Column
      */
     public function resolveBadgeColor(mixed $value): string
     {
-        $key = (string) $value;
+        return $this->badgeColors[self::scalarValue($value)] ?? ($this->badgeColor ?? 'neutral');
+    }
 
-        return $this->badgeColors[$key] ?? ($this->badgeColor ?? 'neutral');
+    /**
+     * Normalize a raw cell value to a plain string. Backed enums (e.g. Eloquent
+     * enum casts) resolve to their backing value, unit enums to their case name —
+     * a plain (string) cast on an enum is a fatal error.
+     */
+    public static function scalarValue(mixed $value): string
+    {
+        if ($value instanceof \BackedEnum) {
+            return (string) $value->value;
+        }
+
+        if ($value instanceof \UnitEnum) {
+            return $value->name;
+        }
+
+        return (string) ($value ?? '');
+    }
+
+    /**
+     * Human-readable badge text: snake_case values render as words
+     * ('partially_settled' → 'Partially settled'); anything else only gets
+     * its first letter capitalised, so acronyms like 'VIP' pass through.
+     */
+    public static function badgeLabel(mixed $value): string
+    {
+        return ucfirst(str_replace('_', ' ', self::scalarValue($value)));
     }
 
     /**
@@ -236,6 +386,9 @@ class Column
             'htmlView'     => $this->htmlView,
             'htmlRenderer' => $this->htmlRenderer,
             'format'       => $this->format,
+            'align'        => $this->resolvedAlign(),
+            'isNumeric'    => $this->isNumericFormat(),
+            'summable'     => $this->summable,
             'relation'     => $this->relation,
             'exportable'   => $this->exportable,
             'visibleFrom'  => $this->visibleFrom,

@@ -23,9 +23,12 @@ class Popover extends Component
                 @if($trigger === 'hover')
                     @mouseenter="open = true"
                     @mouseleave="open = false"
+                    @focusin="open = true"
+                    @focusout="open = false"
                 @else
                     @click.stop="open = !open"
                     @click.outside="open = false"
+                    @keydown.escape="open = false"
                 @endif
                 class="relative inline-block"
                 {{ $attributes }}
@@ -36,6 +39,7 @@ class Popover extends Component
                 {{-- Popover content --}}
                 <div
                     x-show="open"
+                    role="{{ $trigger === 'hover' ? 'tooltip' : 'dialog' }}"
                     x-transition:enter="transition ease-out duration-150"
                     x-transition:enter-start="opacity-0 scale-95"
                     x-transition:enter-end="opacity-100 scale-100"

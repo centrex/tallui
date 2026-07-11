@@ -134,3 +134,30 @@ it('returns 403 when a component-enqueued source is missing', function (): void 
     $this->getJson(route('tallui.select-search', ['source' => 'missing-source', 'q' => 'alice']))
         ->assertStatus(403);
 });
+
+it('actually advances results when the page parameter increases', function (): void {
+    // Regression: the controller used to ignore `page` entirely and always return
+    // page 1, which made the Select component's infinite-scroll loadMore() re-fetch
+    // the same first page forever.
+    config(['tallui.forms.searchable_models' => [
+        'user' => [
+            'model'    => User::class,
+            'label'    => 'name',
+            'value'    => 'id',
+            'order_by' => 'name',
+            'limit'    => 1,
+        ],
+    ]]);
+
+    $page1 = $this->getJson(route('tallui.select-search', ['name' => 'user', 'q' => '', 'page' => 1]))
+        ->assertOk()
+        ->json();
+
+    $page2 = $this->getJson(route('tallui.select-search', ['name' => 'user', 'q' => '', 'page' => 2]))
+        ->assertOk()
+        ->json();
+
+    expect($page1)->toHaveCount(1)
+        ->and($page2)->toHaveCount(1)
+        ->and($page1[0]['value'])->not->toBe($page2[0]['value']);
+});

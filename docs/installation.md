@@ -63,8 +63,11 @@ Configure your CSS (`resources/css/app.css`):
 @import "tailwindcss";
 @plugin "daisyui";
 
-/* Scan TallUI package views so their classes are not purged */
+/* Scan TallUI package views AND component classes so their classes are not purged.
+   Most components render Blade/DaisyUI classes inline from PHP (src/View/Components),
+   not just from resources/views — both paths must be scanned. */
 @source "../../vendor/centrex/tallui/resources/views";
+@source "../../vendor/centrex/tallui/src";
 ```
 
 ---
@@ -85,8 +88,11 @@ export default {
     content: [
         './resources/**/*.blade.php',
         './resources/**/*.js',
-        // Include TallUI package views
+        // Include TallUI package views AND component classes. Most components render
+        // Blade/DaisyUI classes inline from PHP (src/View/Components), not just from
+        // resources/views — both globs are required or those components ship unstyled.
         './vendor/centrex/tallui/resources/views/**/*.blade.php',
+        './vendor/centrex/tallui/src/**/*.php',
     ],
     plugins: [
         require('daisyui'),

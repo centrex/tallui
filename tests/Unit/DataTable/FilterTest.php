@@ -45,6 +45,13 @@ describe('Filter factories', function (): void {
 
         expect($f->type)->toBe(Filter::TYPE_BOOLEAN);
     });
+
+    it('creates a number range filter', function (): void {
+        $f = Filter::numberRange('Amount', 'amount');
+
+        expect($f->type)->toBe(Filter::TYPE_NUMBER_RANGE)
+            ->and($f->column)->toBe('amount');
+    });
 });
 
 describe('Filter fluent modifiers', function (): void {
@@ -80,6 +87,10 @@ describe('Filter::stateKeys()', function (): void {
         $keys = Filter::dateRange('Created', 'created_at')->stateKeys();
 
         expect($keys)->toBe(['created_at_from', 'created_at_to']);
+    });
+
+    it('returns min/max keys for number range filter', function (): void {
+        expect(Filter::numberRange('Amount', 'amount')->stateKeys())->toBe(['amount_min', 'amount_max']);
     });
 });
 

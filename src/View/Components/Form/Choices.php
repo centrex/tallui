@@ -50,6 +50,7 @@ class Choices extends Component
                     search: '',
                     selected: {{ Js::from($selected) }},
                     options: {{ Js::from($options) }},
+                    panelStyle: 'display:none',
                     get filtered() {
                         if (!this.search) return this.options;
                         const s = this.search.toLowerCase();
@@ -70,8 +71,50 @@ class Choices extends Component
                         return o ? o.label : val;
                     },
                     remove(val) { this.selected.splice(this.selected.indexOf(String(val)), 1); },
+                    init() {
+                        const reposition = () => { if (this.open) this.updatePanelPosition(); };
+                        window.addEventListener('resize', reposition);
+                        window.addEventListener('scroll', reposition, true);
+                        document.addEventListener('mousedown', (event) => this.handleDocumentClick(event));
+                    },
+                    handleDocumentClick(event) {
+                        if (!this.open) return;
+                        const trigger = this.$refs.trigger;
+                        const panel = this.$refs.panel;
+                        if (trigger?.contains(event.target) || panel?.contains(event.target)) return;
+                        this.open = false;
+                    },
+                    togglePanel() {
+                        this.open ? (this.open = false) : this.openPanel();
+                    },
+                    openPanel() {
+                        this.open = true;
+                        this.$nextTick(() => this.updatePanelPosition());
+                    },
+                    updatePanelPosition() {
+                        if (!this.open || !this.$refs.trigger) {
+                            this.panelStyle = 'display:none';
+                            return;
+                        }
+
+                        const rect = this.$refs.trigger.getBoundingClientRect();
+                        const spacing = 4;
+                        const preferredHeight = 260;
+                        const spaceBelow = window.innerHeight - rect.bottom - spacing;
+                        const spaceAbove = rect.top - spacing;
+                        const openUpward = spaceBelow < preferredHeight && spaceAbove > spaceBelow;
+                        const verticalStyle = openUpward
+                            ? 'bottom:' + (window.innerHeight - rect.top + spacing) + 'px'
+                            : 'top:' + (rect.bottom + spacing) + 'px';
+
+                        this.panelStyle = [
+                            'display:block',
+                            verticalStyle,
+                            'left:' + rect.left + 'px',
+                            'width:' + rect.width + 'px',
+                        ].join(';');
+                    },
                 }"
-                @click.outside="open = false"
                 class="form-control w-full"
             >
                 @if($label)
@@ -85,7 +128,11 @@ class Choices extends Component
 
                 {{-- Trigger --}}
                 <div
-                    @click="open = !open"
+                    x-ref="trigger"
+                    @click="togglePanel()"
+                    role="combobox"
+                    aria-haspopup="listbox"
+                    :aria-expanded="open ? 'true' : 'false'"
                     @class([
                         'input input-bordered flex flex-wrap gap-1 items-center min-h-10 cursor-pointer relative',
                         'input-error' => $error,
@@ -124,52 +171,60 @@ class Choices extends Component
                     <x-tallui-icon name="o-chevron-down" class="w-4 h-4 ml-auto shrink-0 text-base-content/40 transition-transform duration-150" :class="open ? 'rotate-180' : ''" />
                 </div>
 
-                {{-- Dropdown --}}
-                <div
-                    x-show="open"
-                    x-transition:enter="transition ease-out duration-100"
-                    x-transition:enter-start="opacity-0 -translate-y-1 scale-y-95"
-                    x-transition:enter-end="opacity-100 translate-y-0 scale-y-100"
-                    x-transition:leave="transition ease-in duration-75"
-                    x-transition:leave-start="opacity-100 translate-y-0 scale-y-100"
-                    x-transition:leave-end="opacity-0 -translate-y-1 scale-y-95"
-                    class="absolute z-50 mt-1 w-full bg-base-100 border border-base-300 rounded-lg shadow-lg overflow-hidden"
-                    style="display:none"
-                >
-                    @if($searchable)
-                        <div class="p-2 border-b border-base-200">
-                            <input
-                                type="text"
-                                x-model="search"
-                                @click.stop
-                                placeholder="{{ __('Search…') }}"
-                                class="input input-sm input-bordered w-full"
-                                x-ref="searchInput"
-                                @focus="$refs.searchInput.focus()"
-                            />
-                        </div>
-                    @endif
-
-                    <ul class="max-h-52 overflow-y-auto py-1">
-                        <template x-for="opt in filtered" :key="opt.value">
-                            <li
-                                @click.stop="toggle(opt.value)"
-                                :class="isSelected(opt.value) ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-base-200'"
-                                class="flex items-center gap-2 px-3 py-2 cursor-pointer text-sm select-none"
-                            >
-                                <x-tallui-icon
-                                    name="o-check"
-                                    :class="isSelected(opt.value) ? 'text-primary' : 'text-base-content/20'"
-                                    class="w-4 h-4 shrink-0"
+                {{-- Dropdown (teleported to <body> so it can't be clipped by an overflow:hidden/transformed ancestor) --}}
+                <template x-teleport="body">
+                    <div
+                        x-ref="panel"
+                        x-show="open"
+                        x-transition:enter="transition ease-out duration-100"
+                        x-transition:enter-start="opacity-0 -translate-y-1 scale-y-95"
+                        x-transition:enter-end="opacity-100 translate-y-0 scale-y-100"
+                        x-transition:leave="transition ease-in duration-75"
+                        x-transition:leave-start="opacity-100 translate-y-0 scale-y-100"
+                        x-transition:leave-end="opacity-0 -translate-y-1 scale-y-95"
+                        role="listbox"
+                        :aria-multiselectable="{{ $multiple ? 'true' : 'false' }}"
+                        class="fixed z-[9999] bg-base-100 border border-base-300 rounded-lg shadow-lg overflow-hidden"
+                        :style="panelStyle"
+                        style="display:none"
+                    >
+                        @if($searchable)
+                            <div class="p-2 border-b border-base-200">
+                                <input
+                                    type="text"
+                                    x-model="search"
+                                    @click.stop
+                                    placeholder="{{ __('Search…') }}"
+                                    class="input input-sm input-bordered w-full"
+                                    x-ref="searchInput"
+                                    @focus="$refs.searchInput.focus()"
                                 />
-                                <span x-text="opt.label"></span>
+                            </div>
+                        @endif
+
+                        <ul class="max-h-52 overflow-y-auto py-1">
+                            <template x-for="opt in filtered" :key="opt.value">
+                                <li
+                                    @click.stop="toggle(opt.value)"
+                                    :class="isSelected(opt.value) ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-base-200'"
+                                    role="option"
+                                    :aria-selected="isSelected(opt.value) ? 'true' : 'false'"
+                                    class="flex items-center gap-2 px-3 py-2 cursor-pointer text-sm select-none"
+                                >
+                                    <x-tallui-icon
+                                        name="o-check"
+                                        :class="isSelected(opt.value) ? 'text-primary' : 'text-base-content/20'"
+                                        class="w-4 h-4 shrink-0"
+                                    />
+                                    <span x-text="opt.label"></span>
+                                </li>
+                            </template>
+                            <li x-show="filtered.length === 0" class="px-3 py-4 text-sm text-center text-base-content/40">
+                                {{ __('No results found') }}
                             </li>
-                        </template>
-                        <li x-show="filtered.length === 0" class="px-3 py-4 text-sm text-center text-base-content/40">
-                            {{ __('No results found') }}
-                        </li>
-                    </ul>
-                </div>
+                        </ul>
+                    </div>
+                </template>
 
                 {{-- Hidden inputs for form submission --}}
                 <template x-for="val in selected" :key="val">

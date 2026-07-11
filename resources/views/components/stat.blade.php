@@ -8,7 +8,10 @@
     @endif
 
     <div class="stat-title">{{ $title }}</div>
-    <div class="stat-value">{{ $value }}</div>
+    {{-- DaisyUI's .stat-value is hardcoded to white-space:nowrap at 2rem with no overflow
+         handling, so a long formatted value (e.g. a large currency amount) spills past the
+         card border instead of wrapping. Override to allow wrapping at a slightly smaller size. --}}
+    <div class="stat-value whitespace-normal break-words text-2xl leading-snug">{{ $value }}</div>
 
     @if($desc || $change)
         <div class="stat-desc flex items-center gap-1">

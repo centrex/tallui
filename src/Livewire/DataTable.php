@@ -6,9 +6,10 @@ namespace Centrex\TallUi\Livewire;
 
 use Centrex\TallUi\Concerns\CachesData;
 use Centrex\TallUi\DataTable\Column;
+use Illuminate\Contracts\Pagination\{LengthAwarePaginator as LengthAwarePaginatorContract, Paginator as PaginatorContract};
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Cache;
 use Livewire\Attributes\Url;
 use Livewire\{Component, WithPagination};
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -45,6 +46,16 @@ class DataTable extends Component
 
     public int $perPage = 15;
 
+    /**
+     * Use "simple" pagination (Prev/Next only, no total count or page jump)
+     * instead of the default length-aware pagination. LengthAwarePaginator
+     * runs a COUNT(*) query on every request — on very large tables (hundreds
+     * of thousands+ rows) that count is often the single most expensive part
+     * of the request. Enable this on huge tables where an exact total isn't
+     * essential to the UX.
+     */
+    public bool $simplePagination = false;
+
     // ── Row selection ─────────────────────────────────────────────────────
 
     /** Primary key column name used for row selection and export. */
@@ -52,6 +63,39 @@ class DataTable extends Component
 
     /** @var array<int, string> Selected row IDs (stored as strings). */
     public array $selectedRows = [];
+
+    /**
+     * True once the user has explicitly opted into selecting every row that
+     * matches the current search/filters — not just the ones on this page.
+     * Bulk actions (export, or custom actions built on $selectedRows) should
+     * treat this the same as an empty $selectedRows: every matching row.
+     */
+    public bool $selectAllMatching = false;
+
+    // ── Appearance / theme ───────────────────────────────────────────────
+
+    /** Zebra-striped rows. Defaults from config('tallui.datatable.striped'). */
+    public bool $striped = true;
+
+    /**
+     * Header visual treatment: 'default' (subtle bg-base-50) | 'minimal'
+     * (no background, border only) | 'bold' (bg-base-200, heavier text) |
+     * 'primary' (tinted with the brand color). Defaults from
+     * config('tallui.datatable.header_style').
+     */
+    public string $headerStyle = 'default';
+
+    /** Show the rows-per-page selector in the toolbar. */
+    public bool $showPerPageSelector = true;
+
+    /** Show the "manage columns" visibility toggle in the toolbar. */
+    public bool $showColumnToggle = true;
+
+    /**
+     * Bound the table body to a fixed height with internal scroll and a sticky
+     * header, e.g. '70vh' or '600px'. Empty string = unbounded (default).
+     */
+    public string $maxHeight = '';
 
     // ── Responsive ────────────────────────────────────────────────────────
 
@@ -61,6 +105,25 @@ class DataTable extends Component
      * Set to '' to disable the card stack (table-only).
      */
     public string $mobileBreakpoint = 'lg';
+
+    /**
+     * Column keys the user has hidden via the column-visibility toggle.
+     * URL-synced so the choice survives navigation/reload.
+     *
+     * @var array<int, string>
+     */
+    #[Url(as: 'cols', history: true)]
+    public array $hiddenColumns = [];
+
+    /**
+     * Remember the authenticated user's column-visibility choices across
+     * sessions/devices (keyed by user id + table class), not just for the
+     * current URL. Host components can set this to false to opt out;
+     * config('tallui.datatable.persist_column_preferences') is a global
+     * kill switch. A shared link's `cols` query param always wins over the
+     * stored preference for that page load.
+     */
+    public bool $persistColumnPreferences = true;
 
     // ── Column definitions (serialization-safe) ───────────────────────────
 
@@ -97,6 +160,17 @@ class DataTable extends Component
     }
 
     /**
+     * Count active (non-empty) filter values.
+     *
+     * Default no-op fallback for host components that don't use WithFilters —
+     * the trait provides the real implementation and takes precedence when present.
+     */
+    public function activeFilterCount(): int
+    {
+        return 0;
+    }
+
+    /**
      * Apply filters to the query.
      *
      * Default implementation handles the flat $tableFilters array (if WithFilters
@@ -125,6 +199,8 @@ class DataTable extends Component
     public function mount(): void
     {
         $this->perPage = (int) config('tallui.datatable.per_page', 15);
+        $this->striped = (bool) config('tallui.datatable.striped', true);
+        $this->headerStyle = (string) config('tallui.datatable.header_style', 'default');
         $this->columnDefs = array_map(
             fn (Column $col): array => $col->toArray(),
             $this->columns(),
@@ -132,12 +208,44 @@ class DataTable extends Component
 
         $this->perPage = $this->normalizePerPage($this->perPage);
 
+        if (!in_array($this->headerStyle, ['default', 'minimal', 'bold', 'primary'], true)) {
+            $this->headerStyle = 'default';
+        }
+
+        $this->persistColumnPreferences = $this->persistColumnPreferences
+            && (bool) config('tallui.datatable.persist_column_preferences', true);
+
+        // No `cols` query param on this request (fresh visit, not a shared
+        // link) — seed from the user's remembered preference, if any.
+        if ($this->persistColumnPreferences && !request()->has('cols') && auth()->check()) {
+            $this->hiddenColumns = $this->loadColumnPreferences();
+        }
+
+        // Drop any hidden-column keys (e.g. stale URL/stored state) that no
+        // longer correspond to a real, non-actions column.
+        $validKeys = array_column($this->columnDefs, 'key');
+        $this->hiddenColumns = array_values(array_intersect($this->hiddenColumns, $validKeys));
+
         if ($this->sortBy === '' && $this->defaultSortBy !== '' && $this->isSortableColumn($this->defaultSortBy)) {
             $this->sortBy = $this->defaultSortBy;
             $this->sortDirection = strtolower($this->defaultSortDirection) === 'desc' ? 'desc' : 'asc';
         } elseif (!$this->isValidSortDirection($this->sortDirection)) {
             $this->sortDirection = 'asc';
         }
+    }
+
+    /**
+     * Skeleton shown while the component is lazy-loaded, e.g.
+     * <livewire:tallui-data-table lazy /> — Livewire renders this
+     * placeholder on first paint, then swaps in the real table once the
+     * (potentially expensive) initial query resolves.
+     */
+    public function placeholder(): View
+    {
+        return view('tallui::livewire.data-table-placeholder', [
+            'columnCount' => max(count($this->columns()), 1),
+            'rowCount'    => min($this->perPage ?: 10, 10),
+        ]);
     }
 
     // ── Actions ───────────────────────────────────────────────────────────
@@ -170,6 +278,16 @@ class DataTable extends Component
     {
         $id = (string) $rowId;
 
+        if ($this->selectAllMatching) {
+            // Escape hatch: rather than tracking an "everything except these"
+            // exclusion set, deselecting while "all matching" is active just
+            // starts a fresh, explicit single-row selection.
+            $this->selectAllMatching = false;
+            $this->selectedRows = [$id];
+
+            return;
+        }
+
         if (in_array($id, $this->selectedRows, true)) {
             $this->selectedRows = array_values(
                 array_filter($this->selectedRows, fn (string $v): bool => $v !== $id),
@@ -181,8 +299,10 @@ class DataTable extends Component
 
     public function togglePageSelection(): void
     {
+        $this->selectAllMatching = false;
+
         $rows = $this->getRows();
-        $pageIds = $rows->map(fn ($r): string => (string) data_get($r, $this->primaryKey))->all();
+        $pageIds = collect($rows->items())->map(fn ($r): string => (string) data_get($r, $this->primaryKey))->all();
         $allSelected = array_diff($pageIds, $this->selectedRows) === [];
 
         if ($allSelected) {
@@ -192,9 +312,92 @@ class DataTable extends Component
         }
     }
 
+    /**
+     * Opt into selecting every row matching the current search/filters, not
+     * just the ones visible on this page. Bulk actions built on $selectedRows
+     * should check $selectAllMatching first and, when true, operate on the
+     * full filtered query (see buildExportQuery()) instead of iterating ids.
+     */
+    public function selectAllAcrossPages(): void
+    {
+        $this->selectAllMatching = true;
+        $this->selectedRows = [];
+    }
+
     public function clearSelection(): void
     {
         $this->selectedRows = [];
+        $this->selectAllMatching = false;
+    }
+
+    // ── Column visibility (responsive / user-controlled columns) ───────────
+
+    /**
+     * Show or hide a data column. Display-only — hidden columns are still
+     * searchable/sortable and are always included in CSV export.
+     */
+    public function toggleColumnVisibility(string $key): void
+    {
+        if (in_array($key, $this->hiddenColumns, true)) {
+            $this->hiddenColumns = array_values(array_diff($this->hiddenColumns, [$key]));
+        } else {
+            $this->hiddenColumns[] = $key;
+        }
+
+        $this->saveColumnPreferences();
+    }
+
+    public function resetColumnVisibility(): void
+    {
+        $this->hiddenColumns = [];
+
+        $this->saveColumnPreferences();
+    }
+
+    /**
+     * Cache key scoped to the current user and this table's class, so
+     * distinct DataTable subclasses (e.g. InvoiceTable vs BillTable) each
+     * remember their own column choices.
+     */
+    protected function columnPreferenceCacheKey(): string
+    {
+        return $this->cacheKey('column-prefs', (string) auth()->id(), static::class);
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    protected function loadColumnPreferences(): array
+    {
+        $stored = Cache::store($this->cacheStore)->get($this->columnPreferenceCacheKey(), []);
+
+        return is_array($stored) ? $stored : [];
+    }
+
+    protected function saveColumnPreferences(): void
+    {
+        if (!$this->persistColumnPreferences || !auth()->check()) {
+            return;
+        }
+
+        Cache::store($this->cacheStore)->forever(
+            $this->columnPreferenceCacheKey(),
+            $this->hiddenColumns,
+        );
+    }
+
+    /**
+     * Column definitions with hidden ones removed — used for rendering only.
+     * Action columns (no key) are never hideable and always pass through.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    protected function visibleColumnDefs(): array
+    {
+        return array_values(array_filter(
+            $this->columnDefs,
+            fn (array $col): bool => $col['key'] === null || !in_array($col['key'], $this->hiddenColumns, true),
+        ));
     }
 
     // ── Export ────────────────────────────────────────────────────────────
@@ -221,6 +424,7 @@ class DataTable extends Component
     protected function buildExportQuery(): Builder
     {
         $query = $this->query();
+        $this->eagerLoadRelationColumns($query);
 
         if ($this->searchIsActive()) {
             $searchableCols = array_filter(
@@ -285,7 +489,7 @@ class DataTable extends Component
                         $value = data_get($row, $col['key'] ?? '');
                         $csvRow[] = is_array($value)
                             ? implode(', ', $value)
-                            : (string) ($value ?? '');
+                            : Column::scalarValue($value);
                     }
                     fputcsv($handle, $csvRow);
                 }
@@ -323,12 +527,11 @@ class DataTable extends Component
 
     /**
      * Build and execute the data query. Extracted so caching wraps only this method.
-     *
-     * @return LengthAwarePaginator<\Illuminate\Database\Eloquent\Model>
      */
-    protected function buildQuery(): LengthAwarePaginator
+    protected function buildQuery(): PaginatorContract
     {
         $query = $this->query();
+        $this->eagerLoadRelationColumns($query);
 
         // Global full-text search across searchable columns
         if ($this->searchIsActive()) {
@@ -358,7 +561,9 @@ class DataTable extends Component
             $query->orderBy($this->defaultSortBy, $this->defaultSortDirection === 'desc' ? 'desc' : 'asc');
         }
 
-        return $query->paginate($this->perPage);
+        return $this->simplePagination
+            ? $query->simplePaginate($this->perPage)
+            : $query->paginate($this->perPage);
     }
 
     /**
@@ -377,19 +582,17 @@ class DataTable extends Component
                 'dir'     => $this->sortDirection,
                 'page'    => $this->getPage(),
                 'perPage' => $this->perPage,
+                'simple'  => $this->simplePagination,
                 'filters' => $filterState,
             ])),
         );
     }
 
-    /**
-     * @return LengthAwarePaginator<\Illuminate\Database\Eloquent\Model>
-     */
-    public function getRows(): LengthAwarePaginator
+    public function getRows(): PaginatorContract
     {
         return $this->rememberCacheTracked(
             $this->dataTableCacheKey(),
-            fn (): LengthAwarePaginator => $this->buildQuery(),
+            fn (): PaginatorContract => $this->buildQuery(),
         );
     }
 
@@ -424,6 +627,76 @@ class DataTable extends Component
         }
 
         return e((string) ($value ?? ''));
+    }
+
+    /**
+     * Eager-load every relation referenced by a ->relation() column so that
+     * rendering "type.name"-style dot-notation cells doesn't lazy-load the
+     * relation once per row (an N+1 query per page).
+     */
+    protected function eagerLoadRelationColumns(Builder $query): void
+    {
+        /** @var array<int, string> $relations */
+        $relations = array_values(array_unique(array_filter(
+            array_column($this->columnDefs, 'relation'),
+            fn (mixed $relation): bool => is_string($relation) && $relation !== '',
+        )));
+
+        if ($relations !== []) {
+            $query->with($relations);
+        }
+    }
+
+    /**
+     * Column key => sum, for every ->summable() column, computed across every
+     * row matching the current search/filters/selection — not just the
+     * current page. Cached alongside the main query.
+     *
+     * @return array<string, float>
+     */
+    public function getColumnSums(): array
+    {
+        $summableKeys = array_values(array_filter(array_map(
+            fn (array $col): ?string => ($col['summable'] ?? false) && $col['key'] !== null && !str_contains((string) $col['key'], '.')
+                ? $col['key']
+                : null,
+            $this->columnDefs,
+        )));
+
+        if ($summableKeys === []) {
+            return [];
+        }
+
+        return $this->rememberCacheTracked(
+            $this->dataTableSumsCacheKey(),
+            function () use ($summableKeys): array {
+                // reorder(): ORDER BY is irrelevant to an aggregate and can
+                // prevent the query planner from using a covering index.
+                $query = $this->buildExportQuery()->reorder();
+                $sums = [];
+
+                foreach ($summableKeys as $key) {
+                    $sums[$key] = (float) (clone $query)->sum($key);
+                }
+
+                return $sums;
+            },
+        );
+    }
+
+    protected function dataTableSumsCacheKey(): string
+    {
+        $filterState = property_exists($this, 'tableFilters') ? $this->tableFilters : [];
+
+        return $this->cacheKey(
+            'datatable-sums',
+            md5(static::class . serialize([
+                'search'            => $this->search,
+                'filters'           => $filterState,
+                'selected'          => $this->selectedRows,
+                'selectAllMatching' => $this->selectAllMatching,
+            ])),
+        );
     }
 
     protected function applySearchConstraint(Builder $query, string $column, string $search): void
@@ -478,17 +751,23 @@ class DataTable extends Component
         $filterDefs = method_exists($this, 'getFilterDefs') ? $this->getFilterDefs() : [];
         $rows = $this->getRows();
 
-        $pageIds = $rows->map(fn ($r): string => (string) data_get($r, $this->primaryKey))->all();
+        $pageIds = collect($rows->items())->map(fn ($r): string => (string) data_get($r, $this->primaryKey))->all();
         $selectedOnPage = count(array_intersect($pageIds, $this->selectedRows));
         $totalOnPage = count($pageIds);
+        $isLengthAware = $rows instanceof LengthAwarePaginatorContract;
 
         return view('tallui::livewire.data-table', [
             'rows'                  => $rows,
-            'columns'               => $this->columnDefs,
+            'columns'               => $this->visibleColumnDefs(),
+            'allColumns'            => $this->columnDefs,
             'filterDefs'            => $filterDefs,
             'primaryKey'            => $this->primaryKey,
-            'pageFullySelected'     => $totalOnPage > 0 && $selectedOnPage === $totalOnPage,
-            'pagePartiallySelected' => $selectedOnPage > 0 && $selectedOnPage < $totalOnPage,
+            'striped'               => $this->striped,
+            'columnSums'            => $this->getColumnSums(),
+            'pageFullySelected'     => $totalOnPage > 0 && ($selectedOnPage === $totalOnPage || $this->selectAllMatching),
+            'pagePartiallySelected' => $selectedOnPage > 0 && $selectedOnPage < $totalOnPage && !$this->selectAllMatching,
+            'hasMoreThanPage'       => $isLengthAware ? $rows->total() > $totalOnPage : $rows->hasMorePages(),
+            'totalMatching'         => $isLengthAware ? $rows->total() : null,
         ]);
     }
 }

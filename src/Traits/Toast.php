@@ -32,9 +32,6 @@ trait Toast
 
         $this->js('toast(' . json_encode(['toast' => $toast]) . ')');
 
-        session()->flash('tallui.toast.title', $title);
-        session()->flash('tallui.toast.description', $description);
-
         if ($redirectTo) {
             return $this->redirect($redirectTo, navigate: true);
         }

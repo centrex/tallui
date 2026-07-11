@@ -20,11 +20,13 @@ class SelectSearchController extends Controller
             'name'   => ['nullable', 'required_without:source', 'string'],
             'source' => ['nullable', 'required_without:name', 'string'],
             'q'      => ['nullable', 'string', 'max:255'],
+            'page'   => ['nullable', 'integer', 'min:1'],
         ]);
 
         $sourceKey = (string) ($validated['name'] ?? $validated['source']);
         $term = trim((string) ($validated['q'] ?? ''));
         $normalizedTerm = mb_strtolower($term);
+        $page = max(1, (int) ($validated['page'] ?? 1));
 
         $config = $this->resolveSourceConfig($validated);
 
@@ -93,6 +95,7 @@ class SelectSearchController extends Controller
                 $direction,
                 $limit,
                 $minSearchLength,
+                $page,
             );
 
             return response()->json(
@@ -110,6 +113,7 @@ class SelectSearchController extends Controller
                         $orderBy,
                         $direction,
                         $limit,
+                        $page,
                     ),
                 ),
             );
@@ -127,6 +131,7 @@ class SelectSearchController extends Controller
                 $orderBy,
                 $direction,
                 $limit,
+                $page,
             ),
         );
     }
@@ -163,6 +168,7 @@ class SelectSearchController extends Controller
         string $direction,
         int $limit,
         int $minSearchLength,
+        int $page,
     ): string {
         return 'tallui:select:' . md5(json_encode([
             'name'              => $name,
@@ -177,6 +183,7 @@ class SelectSearchController extends Controller
             'dir'               => $direction,
             'limit'             => $limit,
             'min_search_length' => $minSearchLength,
+            'page'              => $page,
         ], JSON_THROW_ON_ERROR));
     }
 
@@ -196,6 +203,7 @@ class SelectSearchController extends Controller
         string $orderBy,
         string $direction,
         int $limit,
+        int $page = 1,
     ): array {
         /** @var Builder<Model> $builder */
         $builder = $modelClass::query();
@@ -224,9 +232,11 @@ class SelectSearchController extends Controller
 
         $columns = array_values(array_filter([$valueColumn, $labelColumn, $sublabelColumn]));
 
+        // The client (Form/Select.php) paginates via `page` for infinite-scroll;
+        // forPage() offsets by (page - 1) * limit instead of always returning page 1.
         $results = $builder
             ->orderBy($orderBy, $direction)
-            ->limit($limit)
+            ->forPage($page, $limit)
             ->get($columns);
 
         return $results

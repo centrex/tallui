@@ -22,8 +22,8 @@ class Rating extends Component
     public function render(): View|Closure|string
     {
         return <<<'BLADE'
-            <div @class(['rating', "rating-{$size}", 'rating-half' => false]) {{ $attributes }}>
-                <input type="radio" name="{{ $name }}" class="rating-hidden" value="0"
+            <div role="radiogroup" aria-label="{{ $name }}" @class(['rating', "rating-{$size}", 'rating-half' => false]) {{ $attributes }}>
+                <input type="radio" name="{{ $name }}" class="rating-hidden" value="0" aria-label="0 stars"
                     @checked($value == 0) @if($readonly) disabled @endif />
 
                 @for($i = 1; $i <= $max; $i++)
@@ -31,6 +31,7 @@ class Rating extends Component
                         type="radio"
                         name="{{ $name }}"
                         value="{{ $i }}"
+                        aria-label="{{ $i }} star{{ $i === 1 ? '' : 's' }}"
                         @class(['mask mask-star-2', "bg-{$color}"])
                         @checked($value == $i)
                         @if($readonly) disabled @endif

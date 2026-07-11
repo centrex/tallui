@@ -19,17 +19,17 @@ class Steps extends Component
     public function render(): View|Closure|string
     {
         return <<<'BLADE'
-            <ul @class(['steps', 'steps-vertical' => $vertical]) {{ $attributes }}>
+            <ul role="list" @class(['steps', 'steps-vertical' => $vertical]) {{ $attributes }}>
                 @foreach($steps as $i => $step)
                     @php
                         $stepNum   = $i + 1;
                         $isDone    = $stepNum <= $current;
                         $stepColor = $step['color'] ?? 'primary';
                     @endphp
-                    <li @class([
-                        'step',
-                        "step-{$stepColor}" => $isDone,
-                    ])>{{ $step['label'] }}</li>
+                    <li
+                        @class(['step', "step-{$stepColor}" => $isDone])
+                        @if($stepNum === $current) aria-current="step" @endif
+                    >{{ $step['label'] }}</li>
                 @endforeach
             </ul>
             BLADE;

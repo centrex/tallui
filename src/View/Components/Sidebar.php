@@ -27,11 +27,40 @@ class Sidebar extends Component
             <div
                 x-data="{
                     open: {{ $persistent ? 'window.innerWidth >= 1024' : 'false' }},
-                    toggle() { this.open = !this.open; },
-                    close() { this.open = false; },
+                    returnFocusEl: null,
+                    toggle() { this.open ? this.close() : this.openPanel(); },
+                    openPanel() {
+                        this.returnFocusEl = document.activeElement;
+                        this.open = true;
+                        this.$nextTick(() => this.$refs.panel?.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex=\'-1\'])')?.focus());
+                    },
+                    close() {
+                        this.open = false;
+                        this.returnFocusEl?.focus?.();
+                        this.returnFocusEl = null;
+                    },
+                    trapTab(event) {
+                        const items = [...(this.$refs.panel?.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex=\'-1\'])') ?? [])]
+                            .filter((el) => !el.disabled && el.offsetParent !== null);
+
+                        if (!items.length) {
+                            return;
+                        }
+
+                        const first = items[0];
+                        const last = items[items.length - 1];
+
+                        if (event.shiftKey && document.activeElement === first) {
+                            event.preventDefault();
+                            last.focus();
+                        } else if (!event.shiftKey && document.activeElement === last) {
+                            event.preventDefault();
+                            first.focus();
+                        }
+                    },
                 }"
-                @open-sidebar.window="if ($event.detail === '{{ $id }}') open = true"
-                @close-sidebar.window="if ($event.detail === '{{ $id }}') open = false"
+                @open-sidebar.window="if ($event.detail === '{{ $id }}') openPanel()"
+                @close-sidebar.window="if ($event.detail === '{{ $id }}') close()"
                 @toggle-sidebar.window="if ($event.detail === '{{ $id }}') toggle()"
                 @keydown.escape.window="if (!{{ $persistent ? 'true' : 'false' }}) close()"
                 class="relative"
@@ -55,7 +84,11 @@ class Sidebar extends Component
 
                 {{-- Sidebar panel --}}
                 <aside
+                    x-ref="panel"
                     x-show="open"
+                    role="{{ $persistent ? 'complementary' : 'dialog' }}"
+                    :aria-modal="!{{ $persistent ? 'true' : 'false' }} && open"
+                    @keydown.tab="if (!{{ $persistent ? 'true' : 'false' }}) trapTab($event)"
                     x-transition:enter="transition ease-out duration-200 transform"
                     x-transition:enter-start="{{ $position === 'right' ? 'translate-x-full' : '-translate-x-full' }} opacity-0"
                     x-transition:enter-end="translate-x-0 opacity-100"

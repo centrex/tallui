@@ -28,6 +28,9 @@ class ToastContainer extends Component
                     <div
                         :class="'alert shadow-lg ' + item.css"
                         x-show="item.visible"
+                        role="alert"
+                        aria-live="assertive"
+                        aria-atomic="true"
                         x-transition:enter="transition ease-out duration-300"
                         x-transition:enter-start="opacity-0 translate-y-2"
                         x-transition:enter-end="opacity-100 translate-y-0"
@@ -40,7 +43,7 @@ class ToastContainer extends Component
                             <p class="font-semibold" x-text="item.title"></p>
                             <p class="text-sm opacity-80" x-show="item.description" x-text="item.description"></p>
                         </div>
-                        <button @click="dismiss(index)" class="btn btn-ghost btn-xs btn-circle ml-2">✕</button>
+                        <button @click="dismiss(index)" aria-label="Dismiss notification" class="btn btn-ghost btn-xs btn-circle ml-2">✕</button>
                     </div>
                 </template>
             </div>

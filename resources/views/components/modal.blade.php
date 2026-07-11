@@ -1,22 +1,54 @@
 <div
     x-data="{
         open: false,
-        modalId: @js($id),
+        modalId: @js($id ?? $uuid),
+        returnFocusEl: null,
         matchesModal(event) {
             const detail = event.detail;
             return detail === this.modalId
                 || (Array.isArray(detail) && detail[0] === this.modalId)
                 || (detail && detail.id === this.modalId);
         },
+        focusables() {
+            return [...(this.$refs.panel?.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex=\'-1\'])') ?? [])]
+                .filter((el) => !el.disabled && el.offsetParent !== null);
+        },
+        onOpen() {
+            this.returnFocusEl = document.activeElement;
+            this.$nextTick(() => this.focusables()[0]?.focus());
+        },
+        onClose() {
+            this.returnFocusEl?.focus?.();
+            this.returnFocusEl = null;
+        },
+        trapTab(event) {
+            const items = this.focusables();
+
+            if (!items.length) {
+                return;
+            }
+
+            const first = items[0];
+            const last = items[items.length - 1];
+
+            if (event.shiftKey && document.activeElement === first) {
+                event.preventDefault();
+                last.focus();
+            } else if (!event.shiftKey && document.activeElement === last) {
+                event.preventDefault();
+                first.focus();
+            }
+        },
     }"
     x-init="$watch('open', (value) => { if (!value) $dispatch('modal-closed', modalId) })"
+    x-effect="open ? onOpen() : onClose()"
     @open-modal.window="if (matchesModal($event)) open = true"
     @close-modal.window="if (matchesModal($event)) open = false"
     @keydown.escape.window="if (open && {{ $closeable ? 'true' : 'false' }}) open = false"
 >
     {{-- Optional inline trigger --}}
     @if(isset($trigger))
-        <span @click="$dispatch('open-modal', @js($id))">{{ $trigger }}</span>
+        <span @click="$dispatch('open-modal', modalId)">{{ $trigger }}</span>
     @endif
 
     {{-- Teleport to <body> so fixed positioning is never trapped inside a
@@ -50,6 +82,11 @@
                 style="display:none"
             >
                 <div
+                    x-ref="panel"
+                    role="dialog"
+                    aria-modal="true"
+                    :aria-labelledby="$el.querySelector('[data-modal-title]') ? modalId + '-title' : null"
+                    @keydown.tab="trapTab($event)"
                     @class([
                         'bg-base-100 text-base-content rounded-2xl shadow-2xl w-full flex flex-col max-h-[90vh]',
                         'max-w-sm'   => $size === 'sm',
@@ -70,7 +107,7 @@
                                     </span>
                                 @endif
                                 @if($title)
-                                    <h3 class="font-semibold text-lg">{{ $title }}</h3>
+                                    <h3 data-modal-title :id="modalId + '-title'" class="font-semibold text-lg">{{ $title }}</h3>
                                 @endif
                             </div>
                             @if($closeable)

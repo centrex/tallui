@@ -94,7 +94,7 @@ class TallUiServiceProvider extends ServiceProvider
             'stat'          => View\Components\Stat::class,
             'steps'         => View\Components\Steps::class,
             'timeline'      => View\Components\Timeline::class,
-            'error'         => View\Components\ErrorMessage::class,
+            'error-message' => View\Components\ErrorMessage::class,
             'modal'         => View\Components\Modal::class,
             'accordion'     => View\Components\Accordion::class,
             'carousel'      => View\Components\Carousel::class,
@@ -129,6 +129,13 @@ class TallUiServiceProvider extends ServiceProvider
             'file-upload'    => View\Components\Form\FileUpload::class,
             'pin'            => View\Components\Form\Pin::class,
             'password-input' => View\Components\Form\PasswordInput::class,
+            // New components
+            'kbd'         => View\Components\Kbd::class,
+            'divider'     => View\Components\Divider::class,
+            'skeleton'    => View\Components\Skeleton::class,
+            'tooltip'     => View\Components\Tooltip::class,
+            'dropdown'    => View\Components\Dropdown::class,
+            'chat-bubble' => View\Components\ChatBubble::class,
         ];
 
         foreach ($components as $name => $class) {

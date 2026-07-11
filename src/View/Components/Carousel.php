@@ -45,6 +45,10 @@ class Carousel extends Component
                 x-init="start()"
                 @mouseenter="stop()"
                 @mouseleave="start()"
+                @focusin="stop()"
+                @focusout="start()"
+                role="region"
+                aria-roledescription="carousel"
                 class="relative w-full overflow-hidden rounded-box {{ $height }}"
                 {{ $attributes }}
             >
@@ -53,6 +57,10 @@ class Carousel extends Component
                     <div
                         class="absolute inset-0 transition-opacity duration-500"
                         :class="current === {{ $i }} ? 'opacity-100 z-10' : 'opacity-0 z-0'"
+                        role="group"
+                        aria-roledescription="slide"
+                        :aria-hidden="current === {{ $i }} ? 'false' : 'true'"
+                        aria-label="{{ $i + 1 }} of {{ count($items) }}"
                     >
                         <img
                             src="{{ $item['src'] }}"
@@ -71,8 +79,8 @@ class Carousel extends Component
 
                 {{-- Arrows --}}
                 @if($arrows)
-                    <button @click="prev()" class="absolute left-2 top-1/2 -translate-y-1/2 z-20 btn btn-circle btn-sm btn-ghost bg-black/30 hover:bg-black/50 text-white border-0">❮</button>
-                    <button @click="next()" class="absolute right-2 top-1/2 -translate-y-1/2 z-20 btn btn-circle btn-sm btn-ghost bg-black/30 hover:bg-black/50 text-white border-0">❯</button>
+                    <button @click="prev()" aria-label="Previous slide" class="absolute left-2 top-1/2 -translate-y-1/2 z-20 btn btn-circle btn-sm btn-ghost bg-black/30 hover:bg-black/50 text-white border-0">❮</button>
+                    <button @click="next()" aria-label="Next slide" class="absolute right-2 top-1/2 -translate-y-1/2 z-20 btn btn-circle btn-sm btn-ghost bg-black/30 hover:bg-black/50 text-white border-0">❯</button>
                 @endif
 
                 {{-- Indicators --}}
@@ -83,6 +91,7 @@ class Carousel extends Component
                                 @click="go({{ $i }})"
                                 :class="current === {{ $i }} ? 'bg-white' : 'bg-white/40'"
                                 class="w-2 h-2 rounded-full transition-colors"
+                                aria-label="Go to slide {{ $i + 1 }}"
                             ></button>
                         @endforeach
                     </div>

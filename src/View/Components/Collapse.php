@@ -4,12 +4,15 @@ declare(strict_types = 1);
 
 namespace Centrex\TallUi\View\Components;
 
+use Centrex\TallUi\Concerns\HasUuid;
 use Closure;
 use Illuminate\Contracts\View\View;
 use Illuminate\View\Component;
 
 class Collapse extends Component
 {
+    use HasUuid;
+
     public function __construct(
         public string $title = '',
         public bool $open = false,
@@ -17,7 +20,9 @@ class Collapse extends Component
         public string $variant = 'arrow',   // arrow | plus | none
         public string $titleClass = '',
         public string $contentClass = '',
-    ) {}
+    ) {
+        $this->generateUuid();
+    }
 
     public function render(): View|Closure|string
     {
@@ -34,8 +39,15 @@ class Collapse extends Component
                 {{ $attributes }}
             >
                 <div
+                    id="{{ $uuid }}-title"
                     class="collapse-title font-semibold cursor-pointer select-none {{ $titleClass }}"
+                    role="button"
+                    tabindex="0"
+                    :aria-expanded="open ? 'true' : 'false'"
+                    aria-controls="{{ $uuid }}-content"
                     @click="open = !open"
+                    @keydown.enter.prevent="open = !open"
+                    @keydown.space.prevent="open = !open"
                 >
                     {{ $title }}
                     @if(isset($titleSlot))
@@ -44,6 +56,9 @@ class Collapse extends Component
                 </div>
 
                 <div
+                    id="{{ $uuid }}-content"
+                    role="region"
+                    aria-labelledby="{{ $uuid }}-title"
                     x-show="open"
                     x-transition:enter="transition ease-out duration-150"
                     x-transition:enter-start="opacity-0 -translate-y-1"

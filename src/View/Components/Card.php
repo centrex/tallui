@@ -24,10 +24,10 @@ class Card extends Component
         return <<<'BLADE'
             <div @class([
                 'card bg-base-100',
-                'shadow-md'    => $shadow,
-                'card-bordered' => $bordered,
-                'card-compact' => $padding === 'compact',
-                'card-normal'  => $padding === 'normal',
+                'shadow-md'   => $shadow,
+                'card-border' => $bordered,
+                'card-xs'     => $padding === 'compact',
+                'card-md'     => $padding === 'normal',
             ]) {{ $attributes }}>
                 @if($title || isset($actions))
                     <div class="card-title-area flex items-center justify-between px-6 pt-5 pb-0">

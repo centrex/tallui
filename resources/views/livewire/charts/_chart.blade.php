@@ -16,9 +16,40 @@
             chart: null,
             options: initialOptions,
 
+            // Server-side options are JSON-encoded, so any ApexCharts `formatter`
+            // callbacks arrive as inert strings, not callables. Revive any string
+            // that looks like a function expression into a real function.
+            reviveFunctions(value) {
+                if (Array.isArray(value)) {
+                    return value.map((v) => this.reviveFunctions(v));
+                }
+
+                if (value && typeof value === 'object') {
+                    const out = {};
+
+                    for (const [key, v] of Object.entries(value)) {
+                        out[key] = this.reviveFunctions(v);
+                    }
+
+                    return out;
+                }
+
+                if (typeof value === 'string' && /^\s*function\s*\(/.test(value)) {
+                    try {
+                        return new Function('return (' + value + ')')();
+                    } catch (e) {
+                        console.warn('Failed to revive chart formatter function', e);
+
+                        return value;
+                    }
+                }
+
+                return value;
+            },
+
             // ✅ Normalize options to prevent ApexCharts crashes
             normalizeOptions(opts) {
-                opts = opts || {};
+                opts = this.reviveFunctions(opts || {});
 
                 // --- TITLE ---
                 if (!opts.title || Array.isArray(opts.title)) {

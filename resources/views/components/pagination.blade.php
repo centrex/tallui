@@ -1,5 +1,5 @@
 @if($lastPage > 1)
-<div @class([
+<nav aria-label="Pagination" @class([
     'flex flex-wrap items-center gap-3',
     'justify-start'  => $align === 'start',
     'justify-center' => $align === 'center',
@@ -14,53 +14,53 @@
         </span>
     @endif
 
-    {{-- Page buttons --}}
-    <div @class(['join', "join-{$size}" => $size])>
+    {{-- Page buttons — size is applied per-button via btn-{size}; `join` has no size modifier --}}
+    <div class="join">
 
         {{-- Prev --}}
         @if($pg->onFirstPage())
-            <button class="join-item btn btn-{{ $size ?: 'sm' }} btn-disabled" disabled aria-label="Previous page">
+            <button type="button" class="join-item btn btn-{{ $size ?: 'sm' }} btn-disabled" disabled aria-label="Previous page">
                 <x-tallui-icon name="o-chevron-left" class="w-4 h-4" />
             </button>
         @else
-            <a
-                href="{{ $pg->previousPageUrl() }}"
-                wire:navigate
+            <button
+                type="button"
+                wire:click="previousPage"
                 class="join-item btn btn-{{ $size ?: 'sm' }}"
                 aria-label="Previous page"
             >
                 <x-tallui-icon name="o-chevron-left" class="w-4 h-4" />
-            </a>
+            </button>
         @endif
 
         {{-- Window --}}
         @foreach($window as $page)
             @if($page === $gap)
-                <button class="join-item btn btn-{{ $size ?: 'sm' }} btn-disabled pointer-events-none" disabled>…</button>
+                <button type="button" class="join-item btn btn-{{ $size ?: 'sm' }} btn-disabled pointer-events-none" disabled>…</button>
             @elseif($page === $current)
-                <button class="join-item btn btn-{{ $size ?: 'sm' }} btn-active" aria-current="page" disabled>{{ $page }}</button>
+                <button type="button" class="join-item btn btn-{{ $size ?: 'sm' }} btn-active" aria-current="page" disabled>{{ $page }}</button>
             @else
-                <a
-                    href="{{ $pg->url($page) }}"
-                    wire:navigate
+                <button
+                    type="button"
+                    wire:click="gotoPage({{ $page }})"
                     class="join-item btn btn-{{ $size ?: 'sm' }}"
                     aria-label="Page {{ $page }}"
-                >{{ $page }}</a>
+                >{{ $page }}</button>
             @endif
         @endforeach
 
         {{-- Next --}}
         @if($pg->hasMorePages())
-            <a
-                href="{{ $pg->nextPageUrl() }}"
-                wire:navigate
+            <button
+                type="button"
+                wire:click="nextPage"
                 class="join-item btn btn-{{ $size ?: 'sm' }}"
                 aria-label="Next page"
             >
                 <x-tallui-icon name="o-chevron-right" class="w-4 h-4" />
-            </a>
+            </button>
         @else
-            <button class="join-item btn btn-{{ $size ?: 'sm' }} btn-disabled" disabled aria-label="Next page">
+            <button type="button" class="join-item btn btn-{{ $size ?: 'sm' }} btn-disabled" disabled aria-label="Next page">
                 <x-tallui-icon name="o-chevron-right" class="w-4 h-4" />
             </button>
         @endif
@@ -78,5 +78,5 @@
         </select>
     @endif
 
-</div>
+</nav>
 @endif

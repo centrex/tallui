@@ -35,8 +35,17 @@ class Progress extends Component
                         @endif
                     </div>
                 @endif
+                @php
+                    // DaisyUI's <progress> has no size modifier class; size is a height utility.
+                    $sizeClass = match ($size) {
+                        'xs' => 'h-1',
+                        'sm' => 'h-1.5',
+                        'lg' => 'h-3',
+                        default => 'h-2',
+                    };
+                @endphp
                 <progress
-                    @class(['progress', "progress-{$color}", "progress-{$size}"])
+                    @class(['progress', "progress-{$color}", $sizeClass])
                     value="{{ $value }}"
                     max="{{ $max }}"
                 ></progress>

@@ -46,7 +46,7 @@ class TextEditor extends Component
                 @endif
 
                 {{-- Toolbar --}}
-                <div @class([
+                <div role="toolbar" aria-label="Formatting" @class([
                     'flex flex-wrap gap-1 p-2 bg-base-200 border border-base-300 rounded-t-lg',
                     'border-error' => $error,
                 ])>
@@ -88,6 +88,10 @@ class TextEditor extends Component
                 <div
                     x-ref="editor"
                     contenteditable="true"
+                    role="textbox"
+                    aria-multiline="true"
+                    aria-label="{{ $label ?? $placeholder ?? 'Rich text content' }}"
+                    @if($required) aria-required="true" @endif
                     @input="syncHidden()"
                     @blur="syncHidden()"
                     x-html="html"
