@@ -95,9 +95,10 @@ describe('Input template content', function (): void {
         expect(renderInput($c))->toContain('input input-bordered');
     });
 
-    it('template contains opacity class when disabled', function (): void {
+    it('template keeps disabled text readable instead of dimming the control', function (): void {
         $c = new Input(name: 'field', disabled: true);
 
-        expect(renderInput($c))->toContain('opacity-60');
+        expect(renderInput($c))->toContain('disabled:text-base-content/70')
+            ->not->toContain('opacity-60');
     });
 });

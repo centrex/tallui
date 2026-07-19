@@ -40,13 +40,13 @@ class EmptyState extends Component
                     ]) />
                 </div>
                 <h3 @class([
-                    'font-semibold text-base-content/70',
+                    'font-semibold text-base-content/300',
                     'text-sm' => $size === 'sm',
                     'text-base' => $size === 'md',
                     'text-lg' => $size === 'lg',
                 ])>{{ $title }}</h3>
                 @if($description)
-                    <p class="mt-1 text-sm text-base-content/40">{{ $description }}</p>
+                    <p class="mt-1 text-sm text-base-content/200">{{ $description }}</p>
                 @endif
                 @if($slot->isNotEmpty())
                     <div class="mt-4">{{ $slot }}</div>

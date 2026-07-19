@@ -24,8 +24,8 @@ class Toggle extends Component
     public function render(): View|Closure|string
     {
         return <<<'BLADE'
-            <div @class(['form-control', 'opacity-60' => $disabled])>
-                <label class="label cursor-pointer justify-start gap-3">
+            <div @class(['form-control'])>
+                <label @class(['label justify-start gap-3', 'cursor-pointer' => !$disabled, 'cursor-not-allowed' => $disabled])>
                     <input
                         type="checkbox"
                         id="{{ $name }}"
@@ -38,7 +38,7 @@ class Toggle extends Component
                         ])->merge() }}
                     />
                     @if($label)
-                        <span class="label-text">{{ $label }}</span>
+                        <span @class(['label-text', 'text-base-content/70' => $disabled])>{{ $label }}</span>
                     @endif
                 </label>
 

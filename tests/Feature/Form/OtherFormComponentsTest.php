@@ -99,10 +99,11 @@ describe('Toggle', function (): void {
         expect($c->render())->toContain('toggle-success');
     });
 
-    it('template contains opacity class when disabled', function (): void {
+    it('template keeps the disabled label readable instead of dimming the control', function (): void {
         $c = new Toggle(name: 'active', disabled: true);
 
-        expect($c->render())->toContain('opacity-60');
+        expect($c->render())->toContain('text-base-content/70')
+            ->not->toContain('opacity-60');
     });
 });
 

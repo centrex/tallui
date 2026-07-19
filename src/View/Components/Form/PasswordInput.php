@@ -39,7 +39,7 @@ class PasswordInput extends Component
     {
         return <<<'BLADE'
             <div
-                @class(['form-control w-full', 'opacity-60' => $disabled])
+                @class(['form-control w-full'])
                 x-data="{ show: false }"
             >
                 @if($label)
@@ -51,7 +51,7 @@ class PasswordInput extends Component
                     </label>
                 @endif
 
-                <div @class(['relative flex items-center input input-bordered', $sizeClass, 'input-error' => $error])>
+                <div @class(['relative flex items-center input input-bordered', $sizeClass, 'input-error' => $error, 'bg-base-200 border-base-200 text-base-content/70' => $disabled])>
                     @if($icon)
                         <span class="mr-2 text-base-content/50">
                             <x-tallui-icon :name="$icon" class="w-4 h-4" />

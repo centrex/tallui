@@ -134,7 +134,7 @@ class Select extends Component
     public function render(): View|Closure|string
     {
         return <<<'BLADE'
-<div @class(['form-control w-full', 'opacity-60 pointer-events-none' => $disabled])>
+<div @class(['form-control w-full', 'pointer-events-none' => $disabled])>
     @php
         $inputId = $name !== '' ? $name : uniqid('select_', false);
         $hiddenInputAttributes = collect($attributes->getAttributes())
@@ -183,7 +183,7 @@ class Select extends Component
                 @if($placeholder) placeholder="{{ $placeholder }}" @endif
                 @if($disabled) disabled @endif
                 autocomplete="off"
-                class="input input-bordered w-full {{ $sizeClass }} @if($error) input-error @endif"
+                class="input input-bordered w-full disabled:text-base-content/70 {{ $sizeClass }} @if($error) input-error @endif"
             />
 
             <input
@@ -641,6 +641,7 @@ class Select extends Component
                 'select select-bordered w-full',
                 $sizeClass,
                 'select-error' => $error,
+                'disabled:text-base-content/70' => true,
             ])->except(['value']) }}
         >
             @if($placeholder)

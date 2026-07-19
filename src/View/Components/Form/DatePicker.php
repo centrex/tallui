@@ -39,7 +39,7 @@ class DatePicker extends Component
     public function render(): View|Closure|string
     {
         return <<<'BLADE'
-            <div @class(['form-control w-full', 'opacity-60' => $disabled])>
+            <div @class(['form-control w-full'])>
                 @if($label)
                     <label @if($name) for="{{ $name }}" @endif class="label">
                         <span class="label-text font-medium">
@@ -62,6 +62,7 @@ class DatePicker extends Component
                         'input input-bordered w-full',
                         $sizeClass,
                         'input-error' => $error,
+                        'disabled:text-base-content/70' => true,
                     ])->merge() }}
                 />
 

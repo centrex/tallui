@@ -39,7 +39,7 @@ class Input extends Component
     public function render(): View|Closure|string
     {
         return <<<'BLADE'
-            <div @class(['form-control w-full', 'opacity-60' => $disabled])>
+            <div @class(['form-control w-full'])>
                 @if($label)
                     <label @if($name) for="{{ $name }}" @endif class="label">
                         <span class="label-text font-medium">
@@ -49,7 +49,7 @@ class Input extends Component
                     </label>
                 @endif
 
-                <div @class(['relative flex items-center', 'input input-bordered' => $icon || $iconRight, $sizeClass => $icon || $iconRight])>
+                <div @class(['relative flex items-center', 'input input-bordered' => $icon || $iconRight, $sizeClass => $icon || $iconRight, 'bg-base-200 border-base-200 text-base-content/70' => $disabled && ($icon || $iconRight)])>
                     @if($icon)
                         <span class="mr-2 text-base-content/50">
                             <x-tallui-icon :name="$icon" class="w-4 h-4" />
@@ -68,6 +68,7 @@ class Input extends Component
                             'grow bg-transparent outline-none border-none p-0 focus:ring-0' => $icon || $iconRight,
                             $sizeClass => !$icon && !$iconRight,
                             'input-error' => $error,
+                            'disabled:text-base-content/70' => true,
                         ])->merge() }}
                     />
 
