@@ -4,6 +4,8 @@ declare(strict_types = 1);
 
 namespace Centrex\TallUi\DataTable;
 
+use Illuminate\Support\Facades\Gate;
+
 class Column
 {
     public bool $sortable = false;
@@ -60,6 +62,11 @@ class Column
 
     public ?string $relation = null;
 
+    /** Ability name(s) checked via Gate::allows() before this column is included at all. */
+    public string|array|null $ability = null;
+
+    public mixed $abilityArguments = null;
+
     /** @var array<int, Action> */
     public array $actions = [];
 
@@ -87,6 +94,33 @@ class Column
         $this->searchable = true;
 
         return $this;
+    }
+
+    /**
+     * Only include this column when Gate::allows($ability, $arguments) passes for the
+     * current user. Unlike ->visibleFrom() (responsive) or the user-facing column-visibility
+     * toggle, a denied column is dropped by the DataTable before columnDefs/query/export are
+     * built — the data never reaches the client, not just hidden client-side.
+     *
+     *   Column::make('Cost Price', 'cost_price')->can('inventory.pricing.view')
+     *   Column::make('Approve', )->actions([...])->can('orders.approve', $someModel)
+     */
+    public function can(string|array $ability, mixed $arguments = null): static
+    {
+        $this->ability = $ability;
+        $this->abilityArguments = $arguments;
+
+        return $this;
+    }
+
+    /** Whether the current user passes this column's ->can() gate (always true when unset). */
+    public function isAuthorized(): bool
+    {
+        if ($this->ability === null) {
+            return true;
+        }
+
+        return Gate::allows($this->ability, $this->abilityArguments);
     }
 
     /**

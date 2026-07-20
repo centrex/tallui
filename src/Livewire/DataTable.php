@@ -143,6 +143,22 @@ class DataTable extends Component
     }
 
     /**
+     * $this->columns() filtered by each column's ->can() gate for the current user.
+     * Every other entry point (columnDefs, export, sums, search, sort) is built from
+     * columnDefs, which is populated from this — so a denied column never reaches
+     * the client at all, not just hidden in the UI.
+     *
+     * @return array<int, Column>
+     */
+    protected function authorizedColumns(): array
+    {
+        return array_values(array_filter(
+            $this->columns(),
+            fn (Column $col): bool => $col->isAuthorized(),
+        ));
+    }
+
+    /**
      * Provide the base Eloquent query. Override in your host component.
      */
     public function query(): Builder
@@ -203,7 +219,7 @@ class DataTable extends Component
         $this->headerStyle = (string) config('tallui.datatable.header_style', 'default');
         $this->columnDefs = array_map(
             fn (Column $col): array => $col->toArray(),
-            $this->columns(),
+            $this->authorizedColumns(),
         );
 
         $this->perPage = $this->normalizePerPage($this->perPage);
@@ -243,7 +259,7 @@ class DataTable extends Component
     public function placeholder(): View
     {
         return view('tallui::livewire.data-table-placeholder', [
-            'columnCount' => max(count($this->columns()), 1),
+            'columnCount' => max(count($this->authorizedColumns()), 1),
             'rowCount'    => min($this->perPage ?: 10, 10),
         ]);
     }
