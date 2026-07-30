@@ -29,13 +29,13 @@ class UuidHostNoExplicitId
 
 describe('HasUuid trait', function (): void {
     it('generates a uuid string', function (): void {
-        $host = new UuidHost();
+        $host = new UuidHost;
 
         expect($host->uuid)->toBeString()->not->toBeEmpty();
     });
 
     it('uuid starts with tallui- prefix', function (): void {
-        $host = new UuidHost();
+        $host = new UuidHost;
 
         expect($host->uuid)->toStartWith('tallui-');
     });

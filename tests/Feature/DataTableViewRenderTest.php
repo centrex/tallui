@@ -251,7 +251,7 @@ describe('column visibility toggle', function (): void {
 
 describe('lazy-load placeholder', function (): void {
     it('renders a skeleton with one bar per column and a bounded row count', function (): void {
-        $table = new ArrayBackedDataTable();
+        $table = new ArrayBackedDataTable;
         $html = $table->placeholder()->render();
 
         expect($html)->toContain('role="status"')

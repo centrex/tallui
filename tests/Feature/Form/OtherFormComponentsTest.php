@@ -6,7 +6,7 @@ use Centrex\TallUi\View\Components\Form\{Checkbox, DatePicker, FormGroup, Radio,
 
 describe('FormGroup', function (): void {
     it('has no label by default', function (): void {
-        expect((new FormGroup())->label)->toBeNull();
+        expect((new FormGroup)->label)->toBeNull();
     });
 
     it('accepts label', function (): void {

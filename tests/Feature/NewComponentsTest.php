@@ -16,7 +16,7 @@ describe('Kbd', function (): void {
 
 describe('Divider', function (): void {
     it('is a separator with no accessible label when no text is given', function (): void {
-        $rendered = (new Divider())->render();
+        $rendered = (new Divider)->render();
 
         expect($rendered)->toContain('role="separator"')
             ->and($rendered)->toContain('aria-hidden="true"');
@@ -33,7 +33,7 @@ describe('Divider', function (): void {
 
 describe('Skeleton', function (): void {
     it('defaults to a single text bar', function (): void {
-        $c = new Skeleton();
+        $c = new Skeleton;
 
         expect($c->variant)->toBe('text')
             ->and($c->lines)->toBe(1);
@@ -61,7 +61,7 @@ describe('Tooltip', function (): void {
 
 describe('ChatBubble', function (): void {
     it('defaults to the start position', function (): void {
-        expect((new ChatBubble())->position)->toBe('start');
+        expect((new ChatBubble)->position)->toBe('start');
     });
 
     it('renders header when name or time is given', function (): void {

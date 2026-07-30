@@ -340,6 +340,6 @@ class TallUiServiceProvider extends ServiceProvider
     {
         $this->mergeConfigFrom(__DIR__ . '/../config/config.php', 'tallui');
 
-        $this->app->singleton('tallui', fn (): TallUi => new TallUi());
+        $this->app->singleton('tallui', fn (): TallUi => new TallUi);
     }
 }

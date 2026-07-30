@@ -56,7 +56,7 @@ describe('badge() with color map', function (): void {
 
 describe('renderHtmlColumn()', function (): void {
     it('falls back to escaped plain text for unknown html types', function (): void {
-        $component = new HtmlColumnsTable();
+        $component = new HtmlColumnsTable;
 
         $col = [
             'key'          => 'name',

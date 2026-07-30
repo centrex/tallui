@@ -50,7 +50,7 @@ class SelectSearchController extends Controller
         }
 
         /** @var Model $model */
-        $model = new $modelClass();
+        $model = new $modelClass;
         $table = $model->getTable();
 
         try {
