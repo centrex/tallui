@@ -130,12 +130,13 @@ class TallUiServiceProvider extends ServiceProvider
             'pin'            => View\Components\Form\Pin::class,
             'password-input' => View\Components\Form\PasswordInput::class,
             // New components
-            'kbd'         => View\Components\Kbd::class,
-            'divider'     => View\Components\Divider::class,
-            'skeleton'    => View\Components\Skeleton::class,
-            'tooltip'     => View\Components\Tooltip::class,
-            'dropdown'    => View\Components\Dropdown::class,
-            'chat-bubble' => View\Components\ChatBubble::class,
+            'kbd'           => View\Components\Kbd::class,
+            'divider'       => View\Components\Divider::class,
+            'skeleton'      => View\Components\Skeleton::class,
+            'card-skeleton' => View\Components\CardSkeleton::class,
+            'tooltip'       => View\Components\Tooltip::class,
+            'dropdown'      => View\Components\Dropdown::class,
+            'chat-bubble'   => View\Components\ChatBubble::class,
         ];
 
         foreach ($components as $name => $class) {
