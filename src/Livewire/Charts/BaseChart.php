@@ -115,7 +115,11 @@ abstract class BaseChart extends Component
             $this->cacheTtl = (int) config('tallui.charts.cache_ttl', 0);
         }
 
-        $this->dispatch('chart-updated', options: $this->buildOptions());
+        // 'chart-updated' is a browser (window) event, not a scoped Livewire listener —
+        // every chart instance on the page hears every other chart's dispatch. Tagging
+        // it with this component's own id lets _chart.blade.php's listener ignore
+        // updates meant for a different chart instance instead of misapplying them.
+        $this->dispatch('chart-updated', id: $this->getId(), options: $this->buildOptions());
     }
 
     /** @return array<string, mixed> */
@@ -153,7 +157,11 @@ abstract class BaseChart extends Component
 
     public function updated(string $property): void
     {
-        $this->dispatch('chart-updated', options: $this->buildOptions());
+        // 'chart-updated' is a browser (window) event, not a scoped Livewire listener —
+        // every chart instance on the page hears every other chart's dispatch. Tagging
+        // it with this component's own id lets _chart.blade.php's listener ignore
+        // updates meant for a different chart instance instead of misapplying them.
+        $this->dispatch('chart-updated', id: $this->getId(), options: $this->buildOptions());
     }
 
     public function render(): View

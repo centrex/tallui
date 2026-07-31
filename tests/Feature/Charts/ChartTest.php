@@ -93,6 +93,24 @@ describe('PieChart', function (): void {
     it('renders without error', function (): void {
         livewire(PieChart::class)->assertOk();
     });
+
+    it('uses the labels prop for slice labels — the documented usage for tallui-pie-chart', function (): void {
+        $chart = livewire(PieChart::class, [
+            'series' => [10, 20, 30],
+            'labels' => ['A', 'B', 'C'],
+        ])->instance();
+
+        expect($chart->buildOptions()['labels'])->toBe(['A', 'B', 'C']);
+    });
+
+    it('falls back to categories when labels is not set', function (): void {
+        $chart = livewire(PieChart::class, [
+            'series'     => [10, 20, 30],
+            'categories' => ['X', 'Y', 'Z'],
+        ])->instance();
+
+        expect($chart->buildOptions()['labels'])->toBe(['X', 'Y', 'Z']);
+    });
 });
 
 describe('AreaChart', function (): void {

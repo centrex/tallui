@@ -8,6 +8,15 @@ class PieChart extends BaseChart
 {
     public bool $donut = false;
 
+    /**
+     * Pie/donut charts conventionally call their slice labels "labels" (matching
+     * ApexCharts' own `labels` chart option), not "categories" — every current
+     * <livewire:tallui-pie-chart> call site in the monorepo (and the documented usage in
+     * the root CLAUDE.md) passes :labels. $categories (inherited from BaseChart) is kept
+     * as a fallback for the one caller that already uses it.
+     */
+    public array $labels = [];
+
     protected function chartType(): string
     {
         return $this->donut ? 'donut' : 'pie';
@@ -40,7 +49,7 @@ class PieChart extends BaseChart
                 'toolbar' => ['show' => false],
             ],
             'series' => $data['series'] ?? [],
-            'labels' => $data['categories'] ?? [],
+            'labels' => $this->labels !== [] ? $this->labels : ($data['categories'] ?? []),
             'title'  => $this->title !== '' && $this->title !== '0' ? ['text' => $this->title, 'align' => 'left'] : [],
         ]);
     }

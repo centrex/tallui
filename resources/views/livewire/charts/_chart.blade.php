@@ -3,7 +3,7 @@
     @if($poll > 0) wire:poll.{{ $poll }}ms @endif
     x-data="tallUiChart(@js($this->buildOptions()), '{{ $this->getId() }}')"
     x-init="initChart()"
-    x-on:chart-updated.window="updateChart($event.detail.options)"
+    x-on:chart-updated.window="$event.detail.id === id && updateChart($event.detail.options)"
     class="relative w-full"
 >
     @assets
@@ -114,6 +114,16 @@
                         this.chart.destroy();
                     }
 
+                    // chartEl is wire:ignore'd, so Livewire never clears its contents on
+                    // its own — if this Alpine component gets re-initialized (e.g. the
+                    // surrounding wire:key'd element is replaced rather than morphed in
+                    // place across a re-render), `this.chart` above resets to null and the
+                    // destroy() guard is skipped even though the *previous* chart's SVG is
+                    // still sitting in the DOM. Clearing the container unconditionally
+                    // before rendering guarantees only one chart is ever visible, whatever
+                    // caused this to run again.
+                    this.$refs.chartEl.replaceChildren();
+
                     this.chart = new ApexCharts(this.$refs.chartEl, safeOptions);
                     this.chart.render();
                 });
@@ -129,8 +139,11 @@
                 } catch (e) {
                     console.warn('Chart update failed, re-initializing...', e);
 
-                    // fallback hard reset
+                    // fallback hard reset — same wire:ignore leftover-DOM hazard as
+                    // initChart() above: destroy() isn't guaranteed to leave chartEl
+                    // empty, so clear it explicitly before rendering the replacement.
                     this.chart.destroy();
+                    this.$refs.chartEl.replaceChildren();
                     this.chart = new ApexCharts(this.$refs.chartEl, safeOptions);
                     this.chart.render();
                 }
