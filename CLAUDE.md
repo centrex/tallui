@@ -97,6 +97,18 @@ Features: URL-synced search/sort/page, per-page selector, row selection, CSV exp
 | `<x-tallui-pin>` | `View\Components\Form\Pin` | PIN / OTP input (auto-advance, paste, backspace) |
 | `<x-tallui-password-input>` | `View\Components\Form\PasswordInput` | Password field with show/hide toggle (Alpine.js) |
 
+## New Components (added 2026-07-11 / 2026-07-30)
+
+| Component tag | Class | Notes |
+|---|---|---|
+| `<x-tallui-kbd>` | `View\Components\Kbd` | Keyboard shortcut hint (DaisyUI `kbd`) |
+| `<x-tallui-divider>` | `View\Components\Divider` | Horizontal/vertical rule, optional label |
+| `<x-tallui-tooltip>` | `View\Components\Tooltip` | Wraps any element with a DaisyUI `tooltip` |
+| `<x-tallui-dropdown>` | `View\Components\Dropdown` | Floating, keyboard-navigable action menu (Alpine, teleported to `<body>`) |
+| `<x-tallui-skeleton>` | `View\Components\Skeleton` | Loading placeholder bar/circle/text-lines |
+| `<x-tallui-card-skeleton>` | `View\Components\CardSkeleton` | Card-shaped Livewire `placeholder()` view (added 2026-07-30) |
+| `<x-tallui-chat-bubble>` | `View\Components\ChatBubble` | Chat/comment-thread message bubble (DaisyUI `chat`) |
+
 ## Performance Blade Directives
 
 All registered in `TallUiServiceProvider::registerBladeDirectives()`.

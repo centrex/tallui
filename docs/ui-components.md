@@ -692,4 +692,181 @@ Persists the selected theme to `localStorage` and sets the `data-theme` attribut
 
 ---
 
+### Kbd
+
+Renders a keyboard key/shortcut hint (DaisyUI `kbd`).
+
+```blade
+<x-tallui-kbd key="⌘" /> <x-tallui-kbd key="K" />
+
+{{-- Slot content instead of the `key` prop --}}
+<x-tallui-kbd size="sm">Esc</x-tallui-kbd>
+```
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `key` | `?string` | `null` | Key label; falls back to the slot if omitted |
+| `size` | `string` | `'md'` | `xs` \| `sm` \| `md` \| `lg` |
+
+---
+
+### Divider
+
+Horizontal or vertical rule, optionally with a centred label (DaisyUI `divider`).
+
+```blade
+<x-tallui-divider>OR</x-tallui-divider>
+
+<x-tallui-divider color="primary" />
+
+<div class="flex h-24">
+    <div>Left</div>
+    <x-tallui-divider :vertical="true" />
+    <div>Right</div>
+</div>
+```
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `label` | `?string` | `null` | Centred label text; falls back to the slot |
+| `vertical` | `bool` | `false` | Vertical divider instead of horizontal |
+| `color` | `string` | `''` | `''` \| `primary` \| `secondary` \| `accent` \| `neutral` \| `success` \| `warning` \| `error` \| `info` |
+
+---
+
+### Tooltip
+
+Wraps any element with a DaisyUI `tooltip`.
+
+```blade
+<x-tallui-tooltip text="Delete this record" position="top">
+    <x-tallui-button icon="o-trash" class="btn-ghost btn-sm" />
+</x-tallui-tooltip>
+
+{{-- Force-open, e.g. for an onboarding tour step --}}
+<x-tallui-tooltip text="Click here to get started" :open="true" color="primary">
+    <x-tallui-button label="New" class="btn-primary" />
+</x-tallui-tooltip>
+```
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `text` | `string` | `''` | Tooltip text (`data-tip`) |
+| `position` | `string` | `'top'` | `top` \| `bottom` \| `left` \| `right` |
+| `color` | `string` | `''` | `''` \| `primary` \| `secondary` \| `accent` \| `neutral` \| `success` \| `warning` \| `error` \| `info` |
+| `open` | `bool` | `false` | Force the tooltip visible |
+
+---
+
+### Dropdown
+
+Floating action menu, positioned via Alpine (fixed + teleported to `<body>` so it isn't clipped by `overflow-hidden` ancestors). Full keyboard navigation (arrow keys, Escape) and click-outside-to-close.
+
+```blade
+<x-tallui-dropdown
+    position="bottom-end"
+    :items="[
+        ['label' => 'Edit',    'icon' => 'o-pencil',   'url' => route('users.edit', $user)],
+        ['label' => 'Suspend', 'icon' => 'o-no-symbol', 'attributes' => ['wire:click' => 'suspend(' . $user->id . ')']],
+        ['separator' => true],
+        ['sectionTitle' => 'Danger zone'],
+        ['label' => 'Delete', 'icon' => 'o-trash', 'color' => 'error', 'attributes' => ['wire:click' => 'delete(' . $user->id . ')', 'wire:confirm' => 'Are you sure?']],
+    ]"
+>
+    <x-slot:trigger>
+        <x-tallui-button icon="o-ellipsis-vertical" class="btn-ghost btn-sm" />
+    </x-slot:trigger>
+</x-tallui-dropdown>
+```
+
+Each item: `label`, `url`?, `icon`?, `color`?, `badge`?, `disabled`?, `separator`?, `sectionTitle`?, `attributes`? (raw HTML attributes, e.g. `wire:click`). An item with a `url` renders as `<a>`; otherwise a `<button>`.
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `items` | `array` | `[]` | Menu items — see shape above |
+| `position` | `string` | `'bottom-start'` | `bottom-start` \| `bottom-end` \| `top-start` \| `top-end` |
+| `id` | `?string` | auto | Explicit id; otherwise a UUID is generated |
+
+---
+
+### Skeleton
+
+Loading placeholder bar (DaisyUI `skeleton`).
+
+```blade
+{{-- Single bar --}}
+<x-tallui-skeleton width="w-32" height="h-4" />
+
+{{-- Circle (avatar placeholder) --}}
+<x-tallui-skeleton variant="circle" width="w-10" height="h-10" />
+
+{{-- Stacked text lines — last line renders narrower --}}
+<x-tallui-skeleton variant="text" :lines="3" />
+```
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `variant` | `string` | `'text'` | `text` \| `circle` \| `rect` |
+| `width` | `string` | `'w-full'` | Tailwind width class |
+| `height` | `string` | `'h-4'` | Tailwind height class |
+| `lines` | `int` | `1` | Stacked bars when `variant="text"` |
+
+---
+
+### Card Skeleton
+
+Loading placeholder shaped to match `<x-tallui-card>`, so swapping in the real Livewire content (via `Component::placeholder()`) doesn't shift the layout.
+
+```php
+class DashboardStats extends \Livewire\Component
+{
+    public function placeholder(): \Illuminate\Contracts\View\View
+    {
+        return view('livewire.dashboard-stats-placeholder');
+    }
+}
+```
+
+```blade
+{{-- resources/views/livewire/dashboard-stats-placeholder.blade.php --}}
+<x-tallui-card-skeleton title="Revenue" variant="stats" :rows="4" />
+
+{{-- Chart placeholder --}}
+<x-tallui-card-skeleton title="Sales Trend" variant="chart" height="h-64" />
+```
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `title` | `?string` | `null` | Card header title |
+| `variant` | `string` | `'stats'` | `stats` (stacked label/value rows) \| `chart` (single rect block) |
+| `rows` | `int` | `3` | Row count for `variant="stats"` |
+| `height` | `string` | `'h-64'` | Tailwind height class for `variant="chart"` |
+
+---
+
+### Chat Bubble
+
+Message bubble for chat/comment threads (DaisyUI `chat`).
+
+```blade
+<x-tallui-chat-bubble position="start" avatar="/img/support.jpg" name="Support" time="12:42">
+    Hi! How can we help you today?
+</x-tallui-chat-bubble>
+
+<x-tallui-chat-bubble position="end" color="primary" status="Seen">
+    I can't log in to my account.
+</x-tallui-chat-bubble>
+```
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `position` | `string` | `'start'` | `start` \| `end` |
+| `avatar` | `?string` | `null` | Avatar image URL |
+| `name` | `?string` | `null` | Sender name shown in the header |
+| `time` | `?string` | `null` | Timestamp shown in the header |
+| `status` | `?string` | `null` | Footer text, e.g. `"Delivered"` / `"Seen"` |
+| `color` | `string` | `''` | `''` \| `primary` \| `secondary` \| `accent` \| `info` \| `success` \| `warning` \| `error` |
+
+---
+
 ← [Back to docs](../README.md)

@@ -356,6 +356,29 @@ Open programmatically: `$dispatch('open-dialog', 'delete-confirm')`.
 
 ---
 
+#### Dropdown
+
+Floating action menu — positioned via Alpine and teleported to `<body>` so it isn't clipped by `overflow-hidden` ancestors. Full keyboard navigation (arrow keys, Escape).
+
+```blade
+<x-tallui-dropdown
+    position="bottom-end"
+    :items="[
+        ['label' => 'Edit', 'icon' => 'o-pencil', 'url' => route('users.edit', $user)],
+        ['separator' => true],
+        ['label' => 'Delete', 'icon' => 'o-trash', 'color' => 'error', 'attributes' => ['wire:click' => 'delete(' . $user->id . ')', 'wire:confirm' => 'Are you sure?']],
+    ]"
+>
+    <x-slot:trigger>
+        <x-tallui-button icon="o-ellipsis-vertical" class="btn-ghost btn-sm" />
+    </x-slot:trigger>
+</x-tallui-dropdown>
+```
+
+Each item: `label`, `url`?, `icon`?, `color`?, `badge`?, `disabled`?, `separator`?, `sectionTitle`?, `attributes`?. Full reference: [docs/ui-components.md](docs/ui-components.md#dropdown).
+
+---
+
 ### Feedback
 
 #### Alerts
@@ -417,6 +440,18 @@ Sizes: `sm | md | lg`.
 ```blade
 <x-tallui-loading />
 <x-tallui-progress value="72" color="primary" size="sm" />
+```
+
+#### Skeletons
+
+Loading placeholders — use `<x-tallui-skeleton>` for a single bar/circle, or `<x-tallui-card-skeleton>` as a Livewire `placeholder()` view sized to match `<x-tallui-card>` so content doesn't shift when it swaps in.
+
+```blade
+<x-tallui-skeleton variant="circle" width="w-10" height="h-10" />
+<x-tallui-skeleton variant="text" :lines="3" />
+
+{{-- As a Livewire placeholder --}}
+<x-tallui-card-skeleton title="Revenue" variant="stats" :rows="4" />
 ```
 
 ---
@@ -556,8 +591,24 @@ Selectable image picker with lightbox and form submission support. Double-click 
     <x-tallui-button icon="heroicon-o-information-circle" class="btn-ghost btn-xs" />
 </x-tallui-popover>
 
+{{-- Tooltip --}}
+<x-tallui-tooltip text="Delete this record" position="top">
+    <x-tallui-button icon="o-trash" class="btn-ghost btn-sm" />
+</x-tallui-tooltip>
+
 {{-- Spotlight search --}}
 <x-tallui-spotlight />
+
+{{-- Kbd (keyboard shortcut hint) --}}
+<x-tallui-kbd key="⌘" /> <x-tallui-kbd key="K" />
+
+{{-- Divider --}}
+<x-tallui-divider>OR</x-tallui-divider>
+
+{{-- Chat bubble --}}
+<x-tallui-chat-bubble position="start" name="Support" time="12:42">
+    Hi! How can we help you today?
+</x-tallui-chat-bubble>
 ```
 
 ---
