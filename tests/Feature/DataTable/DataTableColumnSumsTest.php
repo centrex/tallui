@@ -16,7 +16,7 @@ it('computes summable column totals correctly via a single aggregate query', fun
     $expectedIdSum = User::sum('id');
     $expectedActiveSum = User::sum('is_active');
 
-    $instance = new SummableUsersTable();
+    $instance = new SummableUsersTable;
     $instance->columnDefs = array_map(fn (Column $col): array => $col->toArray(), $instance->columns());
 
     DB::flushQueryLog();
@@ -48,7 +48,7 @@ it('computes sums correctly when the query also eager-loads a relation', functio
     Order::create(['user_id' => $alice->id, 'reference' => 'ORD-1', 'amount' => 100]);
     Order::create(['user_id' => $bob->id, 'reference' => 'ORD-2', 'amount' => 50.5]);
 
-    $instance = new SummableOrdersTable();
+    $instance = new SummableOrdersTable;
     $instance->columnDefs = array_map(fn (Column $col): array => $col->toArray(), $instance->columns());
 
     $sums = $instance->getColumnSums();
