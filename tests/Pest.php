@@ -22,8 +22,20 @@ uses()
             $table->date('joined_at')->nullable();
             $table->timestamps();
         });
+
+        // A related table so DataTable fixtures can exercise ->relation()
+        // columns / ->with() eager loading alongside ->summable() columns —
+        // see DataTableColumnSumsTest for the regression this guards against.
+        Schema::create('orders', function (Blueprint $table): void {
+            $table->id();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->string('reference');
+            $table->decimal('amount', 10, 2)->default(0);
+            $table->timestamps();
+        });
     })
     ->afterEach(function (): void {
+        Schema::dropIfExists('orders');
         Schema::dropIfExists('users');
     })
     ->in('Feature/DataTable', 'Feature/Http');

@@ -1,4 +1,30 @@
-<div wire:key="tallui-datatable-{{ $this->getId() }}" class="space-y-4">
+{{--
+    Keyboard shortcuts live on x-data as a method (not inlined in x-on)
+    because Alpine's x-on expression parser can't reliably handle a raw
+    multi-statement/multi-line block passed directly in the attribute value —
+    it throws "Unexpected token" on a bare `if (...) {...}` there, even
+    though the exact same code is fine as an x-data method body.
+--}}
+<div
+    wire:key="tallui-datatable-{{ $this->getId() }}"
+    class="space-y-4"
+    x-data="{
+        focusSearchOnSlash(e) {
+            if (
+                e.key !== '/'
+                || e.metaKey || e.ctrlKey || e.altKey
+                || ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)
+                || document.activeElement?.isContentEditable
+            ) {
+                return;
+            }
+
+            e.preventDefault();
+            this.$refs.tableSearch?.focus();
+        },
+    }"
+    x-on:keydown.window="focusSearchOnSlash($event)"
+>
 
     {{-- ══════════════════════════════════════════════════════════
          TOOLBAR
@@ -10,22 +36,26 @@
             <label class="flex items-center gap-2.5 px-3.5 py-2 rounded-xl border border-base-300 bg-base-100
                           focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20
                           transition-all duration-200 shadow-sm">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0 text-base-content/40" viewBox="0 0 20 20" fill="currentColor">
+                <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0 text-base-content/40" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
                 </svg>
                 <input
                     type="search"
+                    x-ref="tableSearch"
                     wire:model.live.debounce.400ms="search"
-                    placeholder="{{ $minSearchLength > 0 ? 'Type ' . $minSearchLength . '+ chars…' : 'Search…' }}"
+                    aria-label="Search"
+                    placeholder="{{ $minSearchLength > 0 ? 'Type ' . $minSearchLength . '+ chars…' : 'Search… (press / to focus)' }}"
                     class="flex-1 bg-transparent outline-none border-none text-sm text-base-content placeholder:text-base-content/40 min-w-0"
                     autocomplete="off"
+                    @keydown.escape="$wire.search !== '' ? $wire.clearSearch() : $el.blur()"
                 />
-                <span wire:loading wire:target="search" class="loading loading-spinner loading-xs text-primary shrink-0"></span>
+                <span wire:loading wire:target="search" aria-hidden="true" class="loading loading-spinner loading-xs text-primary shrink-0"></span>
                 @if($search !== '')
                     <button wire:click="clearSearch"
+                        aria-label="Clear search"
                         class="shrink-0 w-4 h-4 rounded-full bg-base-content/20 hover:bg-base-content/30 flex items-center justify-center transition-colors"
                         title="Clear">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-2.5 h-2.5 text-base-content/70" viewBox="0 0 20 20" fill="currentColor">
+                        <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" class="w-2.5 h-2.5 text-base-content/70" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
                         </svg>
                     </button>
@@ -43,7 +73,7 @@
             {{-- Selection indicator --}}
             @if(count($selectedRows) > 0 || $selectAllMatching)
                 <div class="flex items-center gap-2 pl-3 pr-2 py-1.5 rounded-xl bg-primary/10 border border-primary/20 text-primary text-sm font-medium">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                    <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                     </svg>
                     <span>
@@ -54,9 +84,10 @@
                         @endif
                     </span>
                     <button wire:click="clearSelection"
+                        aria-label="Clear selection"
                         class="ml-0.5 w-4 h-4 rounded-full hover:bg-primary/20 flex items-center justify-center transition-colors"
                         title="Clear selection">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-2.5 h-2.5" viewBox="0 0 20 20" fill="currentColor">
+                        <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" class="w-2.5 h-2.5" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
                         </svg>
                     </button>
@@ -72,8 +103,8 @@
                        text-base-content/70 hover:border-success/50 hover:text-success hover:bg-success/5
                        disabled:opacity-60 transition-all duration-200 shadow-sm"
             >
-                <span wire:loading wire:target="exportCsv" class="loading loading-spinner loading-xs"></span>
-                <svg wire:loading.remove wire:target="exportCsv" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                <span wire:loading wire:target="exportCsv" aria-hidden="true" class="loading loading-spinner loading-xs"></span>
+                <svg wire:loading.remove wire:target="exportCsv" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/>
                 </svg>
                 @if(count($selectedRows) > 0)
@@ -90,26 +121,26 @@
                     @class([
                         'flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium border transition-all duration-200',
                         'border-primary bg-primary/10 text-primary shadow-sm'
-                            => $filtersOpen || $this->activeFilterCount() > 0,
+                            => $filtersOpen || $activeFilterCount > 0,
                         'border-base-300 bg-base-100 text-base-content/70 hover:border-base-400 hover:text-base-content shadow-sm'
-                            => !$filtersOpen && $this->activeFilterCount() === 0,
+                            => !$filtersOpen && $activeFilterCount === 0,
                     ])
                 >
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                    <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L13 10.414V15a1 1 0 01-.553.894l-4 2A1 1 0 017 17v-6.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/>
                     </svg>
                     Filters
-                    @if($this->activeFilterCount() > 0)
+                    @if($activeFilterCount > 0)
                         <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-primary text-primary-content text-[10px] font-bold">
-                            {{ $this->activeFilterCount() }}
+                            {{ $activeFilterCount }}
                         </span>
                     @endif
                 </button>
 
-                @if($this->activeFilterCount() > 0)
+                @if($activeFilterCount > 0)
                     <button wire:click="resetFilters"
                         class="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm border border-base-300 bg-base-100 text-base-content/60 hover:text-error hover:border-error/50 transition-all duration-200 shadow-sm">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                        <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
                         </svg>
                         Clear
@@ -122,7 +153,7 @@
                 $toggleableColumns = array_filter($allColumns, fn ($c) => $c['key'] !== null && !$c['isActions']);
             @endphp
             @if($showColumnToggle && count($toggleableColumns) > 1)
-                <div x-data="{ open: false }" @click.outside="open = false" class="relative">
+                <div x-data="{ open: false }" @click.outside="open = false" @keydown.escape.window="open = false" class="relative">
                     <button
                         @click="open = !open"
                         type="button"
@@ -248,7 +279,7 @@
     @endif
 
     {{-- Active filter chips --}}
-    @if($this->activeFilterCount() > 0)
+    @if($activeFilterCount > 0)
         <div class="flex flex-wrap gap-1.5">
             @foreach($filterDefs as $filter)
                 @foreach($filter['stateKeys'] as $stateKey)
@@ -258,8 +289,9 @@
                             <span class="opacity-70">{{ $filter['label'] }}:</span>
                             <strong>{{ is_array($tableFilters[$stateKey]) ? implode(', ', $tableFilters[$stateKey]) : $tableFilters[$stateKey] }}</strong>
                             <button wire:click="resetFilter('{{ $stateKey }}')"
+                                aria-label="Remove {{ $filter['label'] }} filter"
                                 class="w-3.5 h-3.5 rounded-full hover:bg-primary/20 flex items-center justify-center transition-colors">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-2.5 h-2.5" viewBox="0 0 20 20" fill="currentColor">
+                                <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" class="w-2.5 h-2.5" viewBox="0 0 20 20" fill="currentColor">
                                     <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
                                 </svg>
                             </button>
@@ -286,11 +318,14 @@
 
     <div class="relative rounded-2xl border border-base-200 overflow-hidden shadow-sm bg-base-100">
 
-        {{-- Loading overlay --}}
-        <div wire:loading wire:target="sort,perPage,resetFilters,resetFilter,updatedTableFilters,toggleFilters,togglePageSelection"
+        {{-- Loading overlay — wire:target "tableFilters" catches every individual
+             filter field (wire:model.live="tableFilters.status" etc. targets
+             "tableFilters.<key>", which prefix-matches "tableFilters" here);
+             without it, typing/picking a filter value showed no feedback at all. --}}
+        <div wire:loading wire:target="sort,perPage,resetFilters,resetFilter,tableFilters,toggleFilters,togglePageSelection"
              class="absolute inset-0 bg-base-100/70 backdrop-blur-[1px] z-10 flex items-center justify-center rounded-2xl">
             <div class="flex items-center gap-2 px-4 py-2 rounded-xl bg-base-100 shadow-md border border-base-200">
-                <span class="loading loading-spinner loading-sm text-primary"></span>
+                <span class="loading loading-spinner loading-sm text-primary" aria-hidden="true"></span>
                 <span class="text-sm text-base-content/60">Loading…</span>
             </div>
         </div>
@@ -433,17 +468,17 @@
                 <div class="py-16 text-center">
                     <div class="flex flex-col items-center gap-3">
                         <div class="w-14 h-14 rounded-2xl bg-base-200 flex items-center justify-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-base-content/30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-base-content/30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
                             </svg>
                         </div>
                         <div>
                             <p class="font-medium text-base-content/70">No results found</p>
-                            @if($search !== '' || $this->activeFilterCount() > 0)
+                            @if($search !== '' || $activeFilterCount > 0)
                                 <p class="text-sm text-base-content/40 mt-0.5">Try adjusting your search or filters</p>
                             @endif
                         </div>
-                        @if($search !== '' || $this->activeFilterCount() > 0)
+                        @if($search !== '' || $activeFilterCount > 0)
                             <button wire:click="clearSearch" class="text-sm text-primary hover:underline font-medium">Clear all</button>
                         @endif
                     </div>
@@ -486,7 +521,9 @@
                         @foreach($columns as $column)
                             @php
                                 $align = $column['align'] ?? 'left';
-                                $thClass = "px-4 py-3 {$headerTextClass} {$headerBgClass} whitespace-nowrap first:pl-5 last:pr-5";
+                                $isActiveSort = $column['sortable'] && $column['key'] && $sortBy === $column['key'];
+                                $thClass = "px-4 py-3 {$headerTextClass} whitespace-nowrap first:pl-5 last:pr-5";
+                                $thClass .= $isActiveSort ? ' bg-primary/10' : " {$headerBgClass}";
                                 $thClass .= match ($align) {
                                     'right'  => ' text-right',
                                     'center' => ' text-center',
@@ -494,6 +531,12 @@
                                 };
                                 if (!empty($column['visibleFrom'])) {
                                     $thClass .= " hidden {$column['visibleFrom']}:table-cell";
+                                }
+                                // Pins the actions column to the right edge while the table
+                                // scrolls horizontally, so row actions stay reachable on wide
+                                // tables instead of requiring a scroll to the far right every time.
+                                if ($column['isActions']) {
+                                    $thClass .= ' sticky right-0 border-l border-base-300';
                                 }
                                 $ariaSort = $column['sortable'] && $column['key']
                                     ? ($sortBy === $column['key'] ? ($sortDirection === 'asc' ? 'ascending' : 'descending') : 'none')
@@ -512,16 +555,16 @@
                                         <span class="flex flex-col gap-px">
                                             @if($sortBy === $column['key'])
                                                 @if($sortDirection === 'asc')
-                                                    <svg class="w-3 h-3 text-primary" viewBox="0 0 20 20" fill="currentColor">
+                                                    <svg aria-hidden="true" class="w-3 h-3 text-primary" viewBox="0 0 20 20" fill="currentColor">
                                                         <path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd"/>
                                                     </svg>
                                                 @else
-                                                    <svg class="w-3 h-3 text-primary" viewBox="0 0 20 20" fill="currentColor">
+                                                    <svg aria-hidden="true" class="w-3 h-3 text-primary" viewBox="0 0 20 20" fill="currentColor">
                                                         <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
                                                     </svg>
                                                 @endif
                                             @else
-                                                <svg class="w-3 h-3 opacity-20 group-hover:opacity-50 transition-opacity" viewBox="0 0 20 20" fill="currentColor">
+                                                <svg aria-hidden="true" class="w-3 h-3 opacity-20 group-hover:opacity-50 transition-opacity" viewBox="0 0 20 20" fill="currentColor">
                                                     <path d="M5 8l5-5 5 5H5zm0 4l5 5 5-5H5z"/>
                                                 </svg>
                                             @endif
@@ -559,6 +602,9 @@
                             @foreach($columns as $column)
                                 @php
                                     $tdClass = 'px-4 py-3.5 text-base-content first:pl-5 last:pr-5 whitespace-nowrap';
+                                    if ($column['sortable'] && $column['key'] && $sortBy === $column['key']) {
+                                        $tdClass .= ' bg-primary/5';
+                                    }
                                     $tdClass .= match ($column['align'] ?? 'left') {
                                         'right'  => ' text-right',
                                         'center' => ' text-center',
@@ -566,6 +612,12 @@
                                     };
                                     if (!empty($column['visibleFrom'])) {
                                         $tdClass .= " hidden {$column['visibleFrom']}:table-cell";
+                                    }
+                                    // Sticky cells need their own opaque background (can't inherit
+                                    // the row's striped/hover/selected tint) — falls back to the
+                                    // plain surface color while pinned during horizontal scroll.
+                                    if ($column['isActions']) {
+                                        $tdClass .= ' sticky right-0 z-[1] bg-base-100 border-l border-base-200';
                                     }
                                 @endphp
                                 <td class="{{ $tdClass }}">
@@ -641,17 +693,17 @@
                             <td colspan="{{ count($columns) + 1 }}" class="py-16 text-center">
                                 <div class="flex flex-col items-center gap-3">
                                     <div class="w-14 h-14 rounded-2xl bg-base-200 flex items-center justify-center">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-base-content/30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-base-content/30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
                                         </svg>
                                     </div>
                                     <div>
                                         <p class="font-medium text-base-content/70">No results found</p>
-                                        @if($search !== '' || $this->activeFilterCount() > 0)
+                                        @if($search !== '' || $activeFilterCount > 0)
                                             <p class="text-sm text-base-content/40 mt-0.5">Try adjusting your search or filters</p>
                                         @endif
                                     </div>
-                                    @if($search !== '' || $this->activeFilterCount() > 0)
+                                    @if($search !== '' || $activeFilterCount > 0)
                                         <button wire:click="clearSearch"
                                             class="text-sm text-primary hover:underline font-medium">
                                             Clear all
@@ -714,7 +766,7 @@
 
         {{-- Result count + page nav (right) --}}
         <div class="flex flex-wrap items-center gap-4">
-            <p class="text-xs text-base-content/40">
+            <p class="text-xs text-base-content/40" aria-live="polite" aria-atomic="true">
                 @if($rows->count() > 0)
                     Showing
                     <span class="font-semibold text-base-content/70">{{ $rows->firstItem() }}–{{ $rows->lastItem() }}</span>

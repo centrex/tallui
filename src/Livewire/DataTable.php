@@ -689,10 +689,29 @@ class DataTable extends Component
                 // reorder(): ORDER BY is irrelevant to an aggregate and can
                 // prevent the query planner from using a covering index.
                 $query = $this->buildExportQuery()->reorder();
+
+                // A single query with one SUM() per column instead of N separate
+                // sum() calls — each would otherwise re-run the whole filtered
+                // query (joins, wheres) just to aggregate one column. Keys come
+                // from Column::make() definitions in host components (developer
+                // code), never from request input, so raw interpolation is safe
+                // here the same way ->orderBy($this->sortBy) already treats them.
+                $selects = array_map(
+                    fn (string $key): string => "SUM({$key}) as sum_{$key}",
+                    $summableKeys,
+                );
+
+                // toBase(): drop to the underlying query builder so this stays a
+                // plain scalar aggregate row — ->first() on the Eloquent builder
+                // would still try to eager-load any ->with() relations from
+                // query() onto the result, which fails (missing FK columns like
+                // customer_id) since the SELECT above only returns SUM(...) columns.
+                $result = $query->toBase()->selectRaw(implode(', ', $selects))->first();
+
                 $sums = [];
 
                 foreach ($summableKeys as $key) {
-                    $sums[$key] = (float) (clone $query)->sum($key);
+                    $sums[$key] = (float) ($result?->{'sum_' . $key} ?? 0);
                 }
 
                 return $sums;
@@ -732,9 +751,21 @@ class DataTable extends Component
         });
     }
 
+    /**
+     * Memoized per-request — isSortableColumn() is called several times over
+     * the life of one request (mount, sort(), buildQuery(), buildExportQuery()),
+     * and $columnDefs never changes mid-request, so recomputing it each time is
+     * wasted work. Not persisted across requests: a protected property isn't
+     * part of Livewire's wire:snapshot, so this naturally resets on each new
+     * request/hydration.
+     *
+     * @var array<int, string>|null
+     */
+    protected ?array $sortableColumnsCache = null;
+
     protected function sortableColumns(): array
     {
-        return array_values(array_map(
+        return $this->sortableColumnsCache ??= array_values(array_map(
             fn (array $col): string => (string) $col['key'],
             array_filter(
                 $this->columnDefs,
@@ -773,13 +804,16 @@ class DataTable extends Component
         $isLengthAware = $rows instanceof LengthAwarePaginatorContract;
 
         return view('tallui::livewire.data-table', [
-            'rows'                  => $rows,
-            'columns'               => $this->visibleColumnDefs(),
-            'allColumns'            => $this->columnDefs,
-            'filterDefs'            => $filterDefs,
-            'primaryKey'            => $this->primaryKey,
-            'striped'               => $this->striped,
-            'columnSums'            => $this->getColumnSums(),
+            'rows'       => $rows,
+            'columns'    => $this->visibleColumnDefs(),
+            'allColumns' => $this->columnDefs,
+            'filterDefs' => $filterDefs,
+            'primaryKey' => $this->primaryKey,
+            'striped'    => $this->striped,
+            'columnSums' => $this->getColumnSums(),
+            // Computed once here rather than calling $this->activeFilterCount()
+            // repeatedly from the Blade view (it re-scans $tableFilters each call).
+            'activeFilterCount'     => $this->activeFilterCount(),
             'pageFullySelected'     => $totalOnPage > 0 && ($selectedOnPage === $totalOnPage || $this->selectAllMatching),
             'pagePartiallySelected' => $selectedOnPage > 0 && $selectedOnPage < $totalOnPage && !$this->selectAllMatching,
             'hasMoreThanPage'       => $isLengthAware ? $rows->total() > $totalOnPage : $rows->hasMorePages(),
