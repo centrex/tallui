@@ -3,7 +3,7 @@
 declare(strict_types = 1);
 
 use Centrex\TallUi\DataTable\Column;
-use Centrex\TallUi\Tests\Fixtures\DataTables\{SummableOrdersTable, SummableUsersTable};
+use Centrex\TallUi\Tests\Fixtures\DataTables\{SummableOrdersTable, SummableUsersTable, SummableWithComputedColumnTable};
 use Centrex\TallUi\Tests\Fixtures\Models\{Order, User};
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -57,4 +57,30 @@ it('computes sums correctly when the query also eager-loads a relation', functio
     Model::shouldBeStrict(false);
 
     expect($sums['amount'])->toBe(150.5);
+});
+
+it('computes sums correctly when the query itself adds a selectRaw() computed column', function (): void {
+    // Regression test: query()->selectRaw('*, computed_col') must not leak into the
+    // sums query — mixing that with SUM(...) and no GROUP BY is rejected by MySQL
+    // under ONLY_FULL_GROUP_BY (error 1140) in production, even though sqlite
+    // (used here) tolerates it silently. Assert on the captured SQL directly so
+    // the regression is caught regardless of which DB driver enforces the rule.
+    $alice = User::create(['name' => 'Alice', 'email' => 'alice@test.com']);
+    Order::create(['user_id' => $alice->id, 'reference' => 'ORD-1', 'amount' => 100]);
+    Order::create(['user_id' => $alice->id, 'reference' => 'ORD-2', 'amount' => 50.5]);
+
+    $instance = new SummableWithComputedColumnTable;
+    $instance->columnDefs = array_map(fn (Column $col): array => $col->toArray(), $instance->columns());
+
+    DB::flushQueryLog();
+    DB::enableQueryLog();
+
+    $sums = $instance->getColumnSums();
+
+    $sumQuery = collect(DB::getQueryLog())
+        ->first(fn (array $q): bool => stripos((string) $q['query'], 'sum(') !== false);
+
+    expect($sums['amount'])->toBe(150.5)
+        ->and($sumQuery)->not->toBeNull()
+        ->and((string) $sumQuery['query'])->not->toContain('doubled_amount');
 });

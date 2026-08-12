@@ -706,7 +706,16 @@ class DataTable extends Component
                 // would still try to eager-load any ->with() relations from
                 // query() onto the result, which fails (missing FK columns like
                 // customer_id) since the SELECT above only returns SUM(...) columns.
-                $result = $query->toBase()->selectRaw(implode(', ', $selects))->first();
+                //
+                // Clear any columns query() already selected (e.g. a host component's
+                // ->selectRaw('*, computed_col') for a sortable virtual column) before adding
+                // the SUM(...) selects — Query\Builder::selectRaw()/addSelect() appends rather
+                // than replaces, so without this the query mixes aggregate and non-aggregate
+                // columns with no GROUP BY, which MySQL rejects under ONLY_FULL_GROUP_BY
+                // (error 1140) even though every host DataTable's own paginated query is fine.
+                $baseQuery = $query->toBase();
+                $baseQuery->columns = [];
+                $result = $baseQuery->selectRaw(implode(', ', $selects))->first();
 
                 $sums = [];
 
