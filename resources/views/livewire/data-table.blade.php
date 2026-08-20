@@ -351,10 +351,13 @@
                     $rowId = (string) data_get($row, $primaryKey);
                     $isSelected = $selectAllMatching || in_array($rowId, $selectedRows);
                 @endphp
-                <div @class([
+                <div
+                    wire:key="tallui-datatable-card-{{ $rowId }}"
+                    @class([
                         'flex items-start gap-3 px-4 py-3',
                         'bg-primary/5' => $isSelected,
-                    ])>
+                    ])
+                >
                     {{-- Checkbox --}}
                     <div class="pt-0.5 shrink-0">
                         <input
@@ -583,12 +586,15 @@
                             $rowId = (string) data_get($row, $primaryKey);
                             $isSelected = $selectAllMatching || in_array($rowId, $selectedRows);
                         @endphp
-                        <tr @class([
+                        <tr
+                            wire:key="tallui-datatable-row-{{ $rowId }}"
+                            @class([
                                 'group transition-colors duration-100',
                                 'bg-primary/5 hover:bg-primary/10' => $isSelected,
                                 'even:bg-base-200/50' => $striped && !$isSelected,
                                 'hover:bg-base-200' => !$isSelected,
-                            ])>
+                            ])
+                        >
                             {{-- Row checkbox --}}
                             <td class="pl-5 pr-2 py-3.5 w-10">
                                 <input

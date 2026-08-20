@@ -83,6 +83,16 @@ class MyTable extends DataTable
 
 Features: URL-synced search/sort/page, per-page selector, row selection, CSV export (chunked, UTF-8 BOM), optional result caching via `$cacheTtl`.
 
+Both row loops in `resources/views/livewire/data-table.blade.php` (the desktop `<tr>` at the
+`@forelse($rows as $row)` around line 581, and the mobile card-stack `<div>` at its own
+`@forelse($rows as $row)` around line 349) carry `wire:key="tallui-datatable-row-{{ $rowId }}"`
+/ `...-card-{{ $rowId }}"`. Without it, Livewire's morphdom diffing can reassign a
+re-rendered row's DOM node — and any per-row action button baked into it (e.g. a `Column::view()`
+cell with `wire:click="$dispatch('...:audit', { id: {{ $row->getKey() }} })"`) — to the wrong
+row whenever search/sort/page/filter changes reorder the row set, which manifested as
+per-record action buttons (audit-trail modal, etc.) opening a different record of the same
+type. Any new per-row loop added to this template needs the same `wire:key`.
+
 ## New Components (added 2026-04-08)
 
 | Component tag | Class | Notes |
