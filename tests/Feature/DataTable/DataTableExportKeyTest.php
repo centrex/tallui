@@ -20,7 +20,7 @@ it('exports the exportKey value instead of the display key when both are set', f
     $user = User::create(['name' => 'Alice', 'email' => 'alice@test.com', 'status' => 'active']);
     Order::create(['user_id' => $user->id, 'reference' => 'ORD-1', 'amount' => 100]);
 
-    $instance = new ExportKeyOrdersTable();
+    $instance = new ExportKeyOrdersTable;
     $instance->columnDefs = array_map(fn (Column $col): array => $col->toArray(), $instance->columns());
 
     $csv = streamedCsv($instance);
@@ -33,7 +33,7 @@ it('falls back to the display key when no exportKey is set', function (): void {
     $user = User::create(['name' => 'Bob', 'email' => 'bob@test.com', 'status' => 'inactive']);
     Order::create(['user_id' => $user->id, 'reference' => 'ORD-2', 'amount' => 50]);
 
-    $table = new class() extends ExportKeyOrdersTable
+    $table = new class extends ExportKeyOrdersTable
     {
         public function columns(): array
         {
