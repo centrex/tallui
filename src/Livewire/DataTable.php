@@ -419,7 +419,8 @@ class DataTable extends Component
     // ── Export ────────────────────────────────────────────────────────────
 
     /**
-     * Returns exportable column definitions (no action columns, must have a key).
+     * Returns exportable column definitions (no action columns, must have a
+     * key or an exportKey to read a value from).
      *
      * @return array<int, array<string, mixed>>
      */
@@ -429,7 +430,7 @@ class DataTable extends Component
             $this->columnDefs,
             fn (array $col): bool => ($col['exportable'] ?? true)
                 && !$col['isActions']
-                && $col['key'] !== null,
+                && ($col['key'] !== null || ($col['exportKey'] ?? null) !== null),
         ));
     }
 
@@ -502,7 +503,7 @@ class DataTable extends Component
                     $csvRow = [];
 
                     foreach ($columns as $col) {
-                        $value = data_get($row, $col['key'] ?? '');
+                        $value = data_get($row, $col['exportKey'] ?? $col['key'] ?? '');
                         $csvRow[] = is_array($value)
                             ? implode(', ', $value)
                             : Column::scalarValue($value);

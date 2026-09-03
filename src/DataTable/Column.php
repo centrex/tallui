@@ -23,6 +23,20 @@ class Column
     public bool $exportable = true;   // include in CSV export
 
     /**
+     * Dot-notation path read for this column's CSV/Excel export value,
+     * instead of $key. Needed whenever ->view()/->html() renders a value
+     * that $key alone can't reach — export never renders the Blade
+     * view/renderer (it would produce HTML, not a plain value), it only
+     * ever calls data_get($row, ...), so a column whose real value lives
+     * behind a ->view() with no matching $key silently exports nothing.
+     *
+     *   Column::make('Refundable', 'creditMemo.status')
+     *       ->view('cells.refundable')          // rich badge + amount in the UI
+     *       ->exportKey('creditMemo.refundable_amount'); // plain number in the export
+     */
+    public ?string $exportKey = null;
+
+    /**
      * Tailwind breakpoint at which this column becomes visible in the table.
      * e.g. 'sm', 'md', 'lg', 'xl', '2xl'. null = always visible.
      * Generates "hidden {bp}:table-cell" on <th> and <td>.
@@ -341,6 +355,18 @@ class Column
     }
 
     /**
+     * Dot-notation path to read for CSV/Excel export instead of $key.
+     * Use this when ->view()/->html() displays a computed/derived value
+     * that has no $key of its own to fall back on for export.
+     */
+    public function exportKey(string $key): static
+    {
+        $this->exportKey = $key;
+
+        return $this;
+    }
+
+    /**
      * @param  array<int, Action>  $actions
      */
     public function actions(array $actions): static
@@ -425,6 +451,7 @@ class Column
             'summable'     => $this->summable,
             'relation'     => $this->relation,
             'exportable'   => $this->exportable,
+            'exportKey'    => $this->exportKey,
             'visibleFrom'  => $this->visibleFrom,
             'actions'      => array_map(fn (Action $a): array => $a->toArray(), $this->actions),
         ];
