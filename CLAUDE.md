@@ -119,6 +119,35 @@ type. Any new per-row loop added to this template needs the same `wire:key`.
 | `<x-tallui-card-skeleton>` | `View\Components\CardSkeleton` | Card-shaped Livewire `placeholder()` view (added 2026-07-30) |
 | `<x-tallui-chat-bubble>` | `View\Components\ChatBubble` | Chat/comment-thread message bubble (DaisyUI `chat`) |
 
+## New Components (added 2026-09-07)
+
+| Component tag | Class | Notes |
+|---|---|---|
+| `<x-tallui-theme-switcher>` | `View\Components\ThemeSwitcher` | Dropdown picker across N named DaisyUI themes (not just light/dark) — see below |
+
+### Theming: `theme-toggle` vs `theme-switcher`
+
+`config/tallui.php`'s `theme` key holds the theme catalogue:
+
+```php
+'theme' => [
+    'default' => 'light',
+    'options' => [
+        ['name' => 'light', 'label' => 'Light', 'mode' => 'light'],
+        ['name' => 'dracula', 'label' => 'Dracula', 'mode' => 'dark'],
+        // ... any DaisyUI theme name, tagged with its light/dark mode
+    ],
+],
+```
+
+- `<x-tallui-theme-toggle>` — binary light/dark switch (pre-existing).
+- `<x-tallui-theme-switcher :themes="[...]" default="light" :with-label="true" />` — dropdown
+  listing every configured theme (or an inline `:themes` override). Selecting one sets
+  `data-theme` on `<html>`, toggles the Tailwind `dark` class from the option's `mode`, persists
+  to `localStorage` under the same `theme` / `theme-mode` keys the toggle uses (so the two stay
+  in sync if a page has both), and fires a `tallui-theme-changed` window `CustomEvent` with
+  `{ theme, mode }` for anything that needs to react (e.g. re-rendering a chart's `theme` prop).
+
 ## Performance Blade Directives
 
 All registered in `TallUiServiceProvider::registerBladeDirectives()`.

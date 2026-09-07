@@ -53,6 +53,30 @@ return [
     ],
 
     /**
+     * Theme settings for <x-tallui-theme-toggle> (binary light/dark) and
+     * <x-tallui-theme-switcher> (picker across any number of DaisyUI themes).
+     *
+     * Each option's `mode` (light|dark) drives the Tailwind `dark` class
+     * toggle on <html> alongside the DaisyUI `data-theme` attribute, so
+     * dark-mode-only styling keeps working no matter which named theme
+     * (e.g. "dracula", "winter") is active.
+     */
+    'theme' => [
+        'default' => 'light',
+        'options' => [
+            ['name' => 'light', 'label' => 'Light', 'mode' => 'light'],
+            ['name' => 'cupcake', 'label' => 'Cupcake', 'mode' => 'light'],
+            ['name' => 'corporate', 'label' => 'Corporate', 'mode' => 'light'],
+            ['name' => 'winter', 'label' => 'Winter', 'mode' => 'light'],
+            ['name' => 'emerald', 'label' => 'Emerald', 'mode' => 'light'],
+            ['name' => 'dark', 'label' => 'Dark', 'mode' => 'dark'],
+            ['name' => 'dracula', 'label' => 'Dracula', 'mode' => 'dark'],
+            ['name' => 'night', 'label' => 'Night', 'mode' => 'dark'],
+            ['name' => 'synthwave', 'label' => 'Synthwave', 'mode' => 'dark'],
+        ],
+    ],
+
+    /**
      * Chart component settings.
      */
     'charts' => [
