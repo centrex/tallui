@@ -1,3 +1,15 @@
+@php
+    $styleClass = null;
+
+    if ($resolvedStyle !== 'solid') {
+        $hasExplicitStyleClass = $style === null && collect($explicitStyleClasses)->contains(
+            fn (string $token) => str_contains((string) $attributes->get('class'), $token),
+        );
+
+        $styleClass = $hasExplicitStyleClass ? null : "btn-{$resolvedStyle}";
+    }
+@endphp
+
 @if($link)
     <a href="{!! $link !!}"
 @else
@@ -6,7 +18,7 @@
 
     wire:key="{{ $uuid }}"
     {{ $attributes->whereDoesntStartWith('class')->merge(['type' => 'button']) }}
-    {{ $attributes->class(['btn', "!inline-flex lg:tooltip $tooltipPosition" => $tooltip]) }}
+    {{ $attributes->class(['btn', $styleClass, "!inline-flex lg:tooltip $tooltipPosition" => $tooltip]) }}
 
     @if($link && $external)
         target="_blank"

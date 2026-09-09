@@ -92,6 +92,20 @@ return [
     ],
 
     /**
+     * Default DaisyUI 5 style modifier for color-filled components that
+     * support one (alert, badge, button). Applied whenever a call site
+     * doesn't pass an explicit style/type override.
+     *
+     *      default => 'soft'     <x-tallui-badge type="success"> -> badge-success badge-soft
+     *      default => 'solid'    <x-tallui-badge type="success"> -> badge-success (DaisyUI's plain fill, no modifier)
+     *
+     * One of: 'soft' | 'outline' | 'dash' | 'solid'.
+     */
+    'style' => [
+        'default' => 'soft',
+    ],
+
+    /**
      * Form component settings.
      */
     'forms' => [

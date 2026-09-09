@@ -4,7 +4,7 @@ declare(strict_types = 1);
 
 namespace Centrex\TallUi\View\Components;
 
-use Centrex\TallUi\Concerns\HasUuid;
+use Centrex\TallUi\Concerns\{HasUuid, ResolvesStyleModifier};
 use Closure;
 use Illuminate\Contracts\View\View;
 use Illuminate\View\Component;
@@ -12,6 +12,10 @@ use Illuminate\View\Component;
 class Button extends Component
 {
     use HasUuid;
+    use ResolvesStyleModifier;
+
+    /** btn-* classes that already pick their own style — the default style modifier is skipped when one of these is present. */
+    private const EXPLICIT_STYLE_CLASSES = ['btn-ghost', 'btn-link', 'btn-outline', 'btn-dash', 'btn-soft'];
 
     public function __construct(
         public ?string $id = null,
@@ -34,6 +38,7 @@ class Button extends Component
         public string $confirmType = 'confirm',    // confirm | warning | error
         public string $confirmLabel = 'Confirm',
         public string $cancelLabel = 'Cancel',
+        public ?string $style = null,
     ) {
         $this->tooltip ??= $this->tooltipLeft ?? $this->tooltipRight ?? $this->tooltipBottom;
         $this->generateUuid($id);
@@ -61,6 +66,14 @@ class Button extends Component
             }
         }
 
-        return view('tallui::components.button')->with(compact('tooltipPosition', 'spinnerTarget'));
+        // The "class" attribute holds caller-supplied raw DaisyUI classes (e.g. "btn-primary
+        // btn-sm"), not a color/type prop, and isn't available on $this->attributes yet at
+        // this point in the component lifecycle (it's only bound once the returned view is
+        // actually rendered) — so the explicit-style-class check happens in the Blade view
+        // itself, where $attributes is populated. This just resolves the configured default.
+        $resolvedStyle = $this->resolveStyleModifier($this->style);
+        $explicitStyleClasses = self::EXPLICIT_STYLE_CLASSES;
+
+        return view('tallui::components.button')->with(compact('tooltipPosition', 'spinnerTarget', 'resolvedStyle', 'explicitStyleClasses'));
     }
 }
