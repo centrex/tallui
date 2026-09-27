@@ -44,11 +44,23 @@ class Choices extends Component
     public function render(): View|Closure|string
     {
         return <<<'BLADE'
+            @php
+                // wire:model / wire:model.live → entangle `selected` with the Livewire property,
+                // so the choice list works as a live filter, not just inside a submitted <form>.
+                $wireModelKey = collect(array_keys($attributes->getAttributes()))
+                    ->first(fn ($key) => str_starts_with((string) $key, 'wire:model'));
+                $wireModel = $wireModelKey !== null ? $attributes->get($wireModelKey) : null;
+                $wireLive = $wireModelKey !== null && str_contains((string) $wireModelKey, '.live');
+            @endphp
             <div
                 x-data="{
                     open: false,
                     search: '',
-                    selected: {{ Js::from($selected) }},
+                    @if ($wireModel)
+                        selected: $wire.entangle(@js($wireModel)){{ $wireLive ? '.live' : '' }},
+                    @else
+                        selected: {{ Js::from($selected) }},
+                    @endif
                     options: {{ Js::from($options) }},
                     panelStyle: 'display:none',
                     get filtered() {
@@ -56,13 +68,21 @@ class Choices extends Component
                         const s = this.search.toLowerCase();
                         return this.options.filter(o => o.label.toLowerCase().includes(s));
                     },
-                    isSelected(val) { return this.selected.includes(String(val)); },
+                    {{-- `selected` may be an array, a scalar or null once entangled with Livewire; `values` is always a list of strings. --}}
+                    get values() {
+                        if (Array.isArray(this.selected)) return this.selected.map(String);
+                        return this.selected === null || this.selected === undefined || this.selected === '' ? [] : [String(this.selected)];
+                    },
+                    setValues(values) {
+                        this.selected = {{ $multiple ? 'true' : 'false' }} ? values : (values[0] ?? null);
+                    },
+                    isSelected(val) { return this.values.includes(String(val)); },
                     toggle(val) {
                         val = String(val);
                         if ({{ $multiple ? 'true' : 'false' }}) {
-                            this.isSelected(val) ? this.selected.splice(this.selected.indexOf(val), 1) : this.selected.push(val);
+                            this.setValues(this.isSelected(val) ? this.values.filter(v => v !== val) : [...this.values, val]);
                         } else {
-                            this.selected = this.isSelected(val) ? [] : [val];
+                            this.setValues(this.isSelected(val) ? [] : [val]);
                             this.open = false;
                         }
                     },
@@ -70,7 +90,8 @@ class Choices extends Component
                         const o = this.options.find(o => String(o.value) === String(val));
                         return o ? o.label : val;
                     },
-                    remove(val) { this.selected.splice(this.selected.indexOf(String(val)), 1); },
+                    remove(val) { this.setValues(this.values.filter(v => v !== String(val))); },
+                    clear() { this.setValues([]); },
                     init() {
                         const reposition = () => { if (this.open) this.updatePanelPosition(); };
                         window.addEventListener('resize', reposition);
@@ -140,7 +161,7 @@ class Choices extends Component
                 >
                     {{-- Selected tags (multiple) --}}
                     @if($multiple)
-                        <template x-for="val in selected" :key="val">
+                        <template x-for="val in values" :key="val">
                             <span class="badge badge-primary gap-1 shrink-0">
                                 <span x-text="labelFor(val)"></span>
                                 <button
@@ -152,23 +173,31 @@ class Choices extends Component
                             </span>
                         </template>
                         <span
-                            x-show="selected.length === 0"
+                            x-show="values.length === 0"
                             class="text-base-content/40 text-sm select-none"
                         >{{ $placeholder ?? __('Select options…') }}</span>
                     @else
                         <span
-                            x-show="selected.length > 0"
-                            x-text="labelFor(selected[0])"
+                            x-show="values.length > 0"
+                            x-text="labelFor(values[0])"
                             class="text-sm"
                         ></span>
                         <span
-                            x-show="selected.length === 0"
+                            x-show="values.length === 0"
                             class="text-base-content/40 text-sm select-none"
                         >{{ $placeholder ?? __('Select…') }}</span>
                     @endif
 
+                    <button
+                        type="button"
+                        x-show="values.length > 1"
+                        @click.stop="clear()"
+                        class="ml-auto text-xs text-base-content/50 hover:text-error"
+                        aria-label="{{ __('Clear all') }}"
+                    >{{ __('Clear') }}</button>
+
                     {{-- Caret --}}
-                    <x-tallui-icon name="o-chevron-down" class="w-4 h-4 ml-auto shrink-0 text-base-content/40 transition-transform duration-150" :class="open ? 'rotate-180' : ''" />
+                    <x-tallui-icon name="o-chevron-down" class="w-4 h-4 ml-auto shrink-0 text-base-content/40 transition-transform duration-150" x-bind:class="open ? 'rotate-180' : ''" />
                 </div>
 
                 {{-- Dropdown (teleported to <body> so it can't be clipped by an overflow:hidden/transformed ancestor) --}}
@@ -213,7 +242,7 @@ class Choices extends Component
                                 >
                                     <x-tallui-icon
                                         name="o-check"
-                                        :class="isSelected(opt.value) ? 'text-primary' : 'text-base-content/20'"
+                                        x-bind:class="isSelected(opt.value) ? 'text-primary' : 'text-base-content/20'"
                                         class="w-4 h-4 shrink-0"
                                     />
                                     <span x-text="opt.label"></span>
@@ -227,7 +256,7 @@ class Choices extends Component
                 </template>
 
                 {{-- Hidden inputs for form submission --}}
-                <template x-for="val in selected" :key="val">
+                <template x-for="val in values" :key="val">
                     <input type="hidden" name="{{ $name }}{{ $multiple ? '[]' : '' }}" :value="val" />
                 </template>
 

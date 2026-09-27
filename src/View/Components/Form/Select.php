@@ -447,7 +447,9 @@ class Select extends Component
                     filteredLocalItems() {
                         const term = String(this.search ?? '').trim().toLowerCase();
 
-                        if (term === '') {
+                        // Reopening after a pick leaves the chosen label in the input — show the
+                        // full list then, not just the one item whose label matches it.
+                        if (term === '' || term === String(this.selectedLabel ?? '').trim().toLowerCase()) {
                             return [...this.allItems];
                         }
 
