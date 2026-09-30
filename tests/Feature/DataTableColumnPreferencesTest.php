@@ -23,7 +23,8 @@ function preferenceTestRows(): array
 
 function preferenceTestUser(int $id): GenericUser
 {
-    return new GenericUser(['id' => $id, 'remember_token' => null]);
+    // Laravel 13's session guard reads getAuthPassword() on login, so GenericUser needs the key.
+    return new GenericUser(['id' => $id, 'password' => '', 'remember_token' => null]);
 }
 
 afterEach(function (): void {
